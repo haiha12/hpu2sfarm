@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Farm HPU2S 🌷</title>
+    <title>Smart Farm HPU2S🌷</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- 1. CẤU HÌNH GIAO DIỆN --- */
+        /* --- 1. SETUP GIAO DIỆN --- */
         :root {
             --primary-color: #ff8fa3; 
             --bg-color: #ffe3e8;      
@@ -51,12 +52,12 @@
         .btn-submit { background: var(--primary-color); color: white; border: none; padding: 12px; width: 100%; border-radius: 50px; font-weight: bold; font-size: 1.1em; margin-top: 10px; cursor: pointer; }
         .hidden { display: none !important; }
 
-        /* --- AUTH SCREEN --- */
+        /* --- MÀN HÌNH ĐĂNG KÝ/NHẬP --- */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color);
             display: flex; justify-content: center; align-items: center;
-            z-index: 9999; flex-direction: column; padding: 20px;
+            z-index: 9999; flex-direction: column; padding: 20px; overflow-y: auto;
         }
         .auth-card {
             background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 30px;
@@ -88,12 +89,11 @@
         .grid-box { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
         .card { background: var(--glass-bg); border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
 
-        /* Camera & OSD */
+        /* CAMERA & OSD */
         .video-box { height: 300px; background: #000; border-radius: 15px; position: relative; overflow: hidden; }
         .video-box video, .video-box img { width: 100%; height: 100%; object-fit: cover; }
         .live-tag { position: absolute; top: 15px; right: 15px; background: red; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; display: none; font-weight: bold; animation: pulse 1.5s infinite; }
         
-        /* OSD */
         .camera-overlay {
             position: absolute; bottom: 0; left: 0; width: 100%;
             background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
@@ -103,8 +103,8 @@
         }
         .overlay-row { display: flex; align-items: center; gap: 8px; }
         .overlay-row i { width: 20px; text-align: center; color: var(--primary-color); }
-        
-        /* Báo cáo */
+
+        /* BÁO CÁO */
         .alert-box { background: #dff9fb; color: #0abde3; padding: 15px; border-radius: 10px; margin-top: 10px; font-weight: bold; display: flex; align-items: center; gap: 10px;}
         .alert-box.danger { background: #ffdad9; color: #eb4d4b; border: 1px solid red; animation: shake 0.5s; }
         .health-list { list-style: none; margin-top: 15px; font-size: 0.95em; }
@@ -112,7 +112,7 @@
         .health-list b { color: var(--text-color); }
         .health-list span { font-weight: bold; color: var(--primary-color); }
 
-        /* Settings Grid */
+        /* CÀI ĐẶT (GRID GỌN GÀNG) */
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
         .profile-card-setting { grid-column: 1 / -1; background: var(--glass-bg); border-radius: 20px; padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .setting-box { background: var(--glass-bg); border-radius: 18px; padding: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); transition: transform 0.2s; }
@@ -125,7 +125,7 @@
         .color-picker-wrapper input { width: 150%; height: 150%; transform: translate(-10%, -10%); cursor: pointer; border: none; }
         .btn-edit-mini { background: #eee; border: none; padding: 5px 10px; border-radius: 10px; cursor: pointer; font-size: 0.8em; }
 
-        /* Modal */
+        /* MODAL */
         #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 25px; border-radius: 25px; width: 90%; max-width: 350px; animation: zoomIn 0.3s; }
 
@@ -161,16 +161,18 @@
             <h2 style="color: var(--primary-color);">🌻 Đăng Ký HPU2S Farm</h2>
             <form onsubmit="handleRegister(event)">
                 <div class="input-group"><label>Họ và Tên</label><input type="text" id="reg-name" class="genz-input" required></div>
-                <div class="input-group"><label>SĐT/Email</label><input type="text" id="reg-contact" class="genz-input" required></div>
+                <div class="input-group"><label>SĐT/Email (Tài khoản)</label><input type="text" id="reg-contact" class="genz-input" required></div>
                 <div class="input-group"><label>Mật khẩu</label><input type="password" id="reg-pass" class="genz-input" required></div>
                 <div class="input-group"><label>Ngày sinh</label><input type="date" id="reg-dob" class="genz-input" required></div>
+                
                 <div class="input-group">
-                    <label>Vị trí vườn </label>
+                    <label>Vị trí vườn (Hiển thị trên Camera)</label>
                     <div class="location-wrapper">
                         <input type="text" id="reg-loc" class="genz-input" placeholder="VD: Vườn Sân Thượng" required>
                         <button type="button" class="btn-loc-icon" onclick="autoGetLocation()"><i class="fa-solid fa-location-crosshairs"></i></button>
                     </div>
                 </div>
+
                 <button type="submit" class="btn-submit">Đăng Ký ✨</button>
                 <button type="button" class="btn-link" onclick="toggleAuthMode('login')">Đã có tài khoản? Đăng nhập</button>
             </form>
@@ -188,7 +190,7 @@
 
     <div id="main-app">
         <aside class="sidebar">
-            <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 20px;">🌱 HPU2S Farm</h2>
+            <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 20px;">🌱 HPU2S Farm </h2>
             <ul class="menu">
                 <li class="active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> <span>Tổng quan</span></li>
                 <li onclick="switchTab('notifications', this)"><i class="fa-solid fa-bell"></i> <span>Thông báo</span></li>
@@ -210,6 +212,7 @@
                     <div><p id="clock" style="font-weight: bold;">00:00:00</p></div>
                 </div>
                 <div class="grid-box">
+                    
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items: center;">
                             <h3>🎥 Camera Trực Tiếp</h3>
@@ -219,9 +222,10 @@
                             <span class="live-tag" id="live-tag">🔴 LIVE</span>
                             <img id="cam-img" src="https://images.unsplash.com/photo-1566633806327-68e1525a8479?q=80&w=1000&auto=format&fit=crop">
                             <video id="webcam-feed" class="hidden" autoplay playsinline muted></video>
+
                             <div class="camera-overlay">
                                 <div class="overlay-row"><i class="fa-solid fa-location-dot"></i> <span id="cam-loc-label">Đang cập nhật...</span></div>
-                                <div class="overlay-row"><i class="fa-solid fa-seedling"></i> <span>Vườn Hoa HPU2S 🌼</span></div>
+                                <div class="overlay-row"><i class="fa-solid fa-seedling"></i> <span>Vườn Hoa HPU2S🌼</span></div>
                                 <div class="overlay-row"><i class="fa-regular fa-clock"></i> <span id="cam-time-label">00:00:00</span></div>
                             </div>
                         </div>
@@ -240,7 +244,7 @@
                             <li><b>⏰ Thời gian phun:</b> <span id="val-gio">17:30 Chiều nay</span></li>
                         </ul>
                         <button onclick="triggerWarning()" style="width:100%; margin-top:20px; padding:12px; border:none; background:var(--danger); color:white; border-radius:15px; cursor:pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);">
-                            🛎 Test Cảnh Báo 
+                            ⚠️ Test Cảnh Báo
                         </button>
                     </div>
                 </div>
@@ -260,6 +264,7 @@
                         </div>
                         <button class="btn-edit-mini" onclick="openEditModal()"><i class="fa-solid fa-pen"></i> Sửa</button>
                     </div>
+
                     <div class="setting-box">
                         <div class="setting-icon"><i class="fa-solid fa-palette"></i></div>
                         <span class="setting-label">Màu nền</span>
@@ -267,6 +272,7 @@
                             <input type="color" value="#ffe3e8" onchange="changeColor(this.value)">
                         </div>
                     </div>
+
                     <div class="setting-box">
                         <div class="setting-icon"><i class="fa-solid fa-text-height"></i></div>
                         <span class="setting-label">Cỡ chữ</span>
@@ -276,14 +282,19 @@
                             <option value="font-large">Lớn</option>
                         </select>
                     </div>
+                    
                     <div class="setting-box">
                         <div class="setting-icon"><i class="fa-solid fa-music"></i></div>
                         <span class="setting-label">Nhạc chuông</span>
                         <select class="genz-select" id="ringtone-select">
                             <option value="siren">🚨 Còi hú</option>
-                            <option value="chill">🎵 Nhạc Thư Giãn</option>
+                            <option value="chill">🎵 Nhạc Chill</option>
+                            <option value="custom">🎤 File của bạn</option>
                         </select>
+                        <input type="file" id="custom-file-input" accept="audio/*" style="display: none;" onchange="handleFileUpload(this)">
+                        <button onclick="document.getElementById('custom-file-input').click()" style="margin-top:5px; border:1px dashed var(--primary-color); background:none; padding:3px 8px; border-radius:8px; font-size:0.7em; cursor:pointer;">📂 Tải nhạc</button>
                     </div>
+                    
                     <div class="setting-box">
                         <div class="setting-icon"><i class="fa-solid fa-moon"></i></div>
                         <span class="setting-label">Chế độ tối</span>
@@ -312,242 +323,262 @@
         </div>
     </div>
 
-   <script type="module">
-    // Import các hàm cần thiết từ Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 2. CẤU HÌNH FIREBASE (DÁN CODE BẠN COPY Ở BƯỚC 1 VÀO ĐÂY) 
-    // -----------------------------------------------------------
-      const firebaseConfig = {
-        apiKey: "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M",
-        authDomain: "hpu2sfarm.firebaseapp.com",
-        projectId: "hpu2sfarm",
-        storageBucket: "hpu2sfarm.firebasestorage.app",
-        messagingSenderId: "1028216215776",
-        appId: "1:1028216215776:web:c324f55584da10b698d885",
-        measurementId: "G-G3FH2ZNDJ0"
-      };
-    // -----------------------------------------------------------
+        // ⚠️ DÁN MÃ FIREBASE CỦA BẠN VÀO ĐÂY NHÉ ⚠️
+        const firebaseConfig = { 
+  apiKey : "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M" , 
+  authDomain : "hpu2sfarm.firebaseapp.com" , 
+  projectId : "hpu2sfarm" , 
+  storageBucket : "hpu2sfarm.firebasestorage.app" , 
+  messagingSenderId : "1028216215776" , 
+  appId : "1:1028216215776:web:c324f55584da10b698d885" , 
+  measurementId : "G-G3FH2ZNDJ0" 
+};
 
-    // Khởi tạo
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
 
-    // --- BIẾN TOÀN CỤC CHO UI ---
-    window.toggleAuthMode = (mode) => {
-        document.getElementById('register-form').classList.toggle('hidden', mode === 'login');
-        document.getElementById('login-form').classList.toggle('hidden', mode !== 'login');
-    };
-
-    // --- 3. XỬ LÝ ĐĂNG KÝ (LƯU LÊN MÂY) ---
-    window.handleRegister = async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('reg-contact').value; // Dùng làm email đăng nhập
-        const pass = document.getElementById('reg-pass').value;
-        const name = document.getElementById('reg-name').value;
-        const dob = document.getElementById('reg-dob').value;
-        const loc = document.getElementById('reg-loc').value;
-        const btn = document.querySelector('#register-form .btn-submit');
-
+        let app, auth, db;
+        // Kiểm tra nếu chưa nhập config thì dùng chế độ Offline (LocalStorage)
         try {
-            btn.innerText = "Đang tạo tài khoản...";
-            // 1. Tạo tài khoản Auth
-            const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-            const user = userCredential.user;
+            if (firebaseConfig.apiKey) {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+            }
+        } catch (e) { console.log("Chưa cấu hình Firebase, dùng chế độ Offline"); }
 
-            // 2. Lưu thông tin phụ (Tên, ngày sinh, vị trí) vào Firestore Database
-            await setDoc(doc(db, "users", user.uid), {
-                name: name,
-                dob: dob,
-                loc: loc,
-                email: email,
-                color: '#ffe3e8' // Màu mặc định
+        // --- HÀM XỬ LÝ AUTH (Tự động chọn Firebase hoặc LocalStorage) ---
+        window.handleRegister = async (e) => {
+            e.preventDefault();
+            const userData = {
+                name: document.getElementById('reg-name').value,
+                contact: document.getElementById('reg-contact').value, // SĐT gốc
+                pass: document.getElementById('reg-pass').value,
+                dob: document.getElementById('reg-dob').value,
+                loc: document.getElementById('reg-loc').value,
+                color: '#ffe3e8'
+            };
+
+            // Fix lỗi email Firebase
+            let emailAuth = userData.contact;
+            if (!emailAuth.includes('@')) emailAuth += "@smartfarm.local";
+
+            try {
+                if (auth) { // Nếu có Firebase
+                    document.querySelector('.btn-submit').innerText = "Đang tạo...";
+                    const cred = await createUserWithEmailAndPassword(auth, emailAuth, userData.pass);
+                    await setDoc(doc(db, "users", cred.user.uid), { ...userData, emailAuth });
+                } else { // Nếu dùng Offline
+                    localStorage.setItem('sfUser', JSON.stringify(userData));
+                }
+                alert("Đăng ký thành công!");
+                window.toggleAuthMode('login');
+            } catch (err) {
+                let msg = err.message;
+                if(msg.includes("email-already-in-use")) msg = "Tài khoản đã tồn tại!";
+                if(msg.includes("weak-password")) msg = "Mật khẩu yếu quá (cần 6 ký tự)!";
+                alert("Lỗi: " + msg);
+            }
+            document.querySelector('.btn-submit').innerText = "Đăng Ký 🚀";
+        };
+
+        window.handleLogin = async (e) => {
+            e.preventDefault();
+            const contact = document.getElementById('login-contact').value;
+            const pass = document.getElementById('login-pass').value;
+            let emailAuth = contact;
+            if (!emailAuth.includes('@')) emailAuth += "@smartfarm.local";
+
+            try {
+                if (auth) {
+                    document.querySelector('#login-form .btn-submit').innerText = "Đang vào...";
+                    await signInWithEmailAndPassword(auth, emailAuth, pass);
+                } else {
+                    const user = JSON.parse(localStorage.getItem('sfUser'));
+                    if (user && user.contact === contact && user.pass === pass) {
+                        window.loginSuccess(user);
+                    } else { alert("Sai thông tin!"); }
+                }
+            } catch (err) { alert("Lỗi đăng nhập: " + err.message); }
+            document.querySelector('#login-form .btn-submit').innerText = "Vào Ngay 🔓";
+        };
+
+        // Theo dõi trạng thái Firebase
+        if (auth) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    if (docSnap.exists()) window.loginSuccess(docSnap.data());
+                } else {
+                    document.getElementById('auth-screen').style.display = 'flex';
+                    document.getElementById('main-app').classList.remove('active');
+                }
             });
-
-            alert("Đăng ký thành công! Đang vào...");
-            // Không cần chuyển trang thủ công, onAuthStateChanged sẽ tự lo
-        } catch (error) {
-            alert("Lỗi: " + error.message);
-            btn.innerText = "Đăng Ký 🚀";
         }
-    };
 
-    // --- 4. XỬ LÝ ĐĂNG NHẬP ---
-    window.handleLogin = async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-contact').value;
-        const pass = document.getElementById('login-pass').value;
-        const btn = document.querySelector('#login-form .btn-submit');
-
-        try {
-            btn.innerText = "Đang kiểm tra...";
-            await signInWithEmailAndPassword(auth, email, pass);
-            // Thành công -> onAuthStateChanged sẽ chạy
-        } catch (error) {
-            alert("Đăng nhập thất bại: " + error.message);
-            btn.innerText = "Vào Ngay 🔓";
-        }
-    };
-
-    // --- 5. THEO DÕI TRẠNG THÁI NGƯỜI DÙNG (TỰ ĐỘNG) ---
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            // -> Đã đăng nhập
+        window.loginSuccess = (user) => {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').classList.add('active');
-            
-            // Lấy dữ liệu chi tiết từ Database về
-            const docRef = doc(db, "users", user.uid);
-            const docSnap = await getDoc(docRef);
+            window.updateUI(user);
+            if(user.color) window.changeColor(user.color, false);
+        };
 
-            if (docSnap.exists()) {
-                const userData = docSnap.data();
-                updateUI(userData);
-                if(userData.color) changeColor(userData.color, false);
-            }
-        } else {
-            // -> Chưa đăng nhập
-            document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('main-app').classList.remove('active');
-        }
-    });
+        window.updateUI = (user) => {
+            document.getElementById('welcome-msg').innerText = `👋 Hi, ${user.name}!`;
+            document.getElementById('sidebar-name').innerText = user.name;
+            document.getElementById('sidebar-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=ff8fa3&color=fff`;
+            document.getElementById('info-name-box').innerText = user.name;
+            document.getElementById('info-contact-box').innerText = user.contact;
+            document.getElementById('info-dob-box').innerText = "🎂 " + user.dob;
+            if(user.loc) document.getElementById('cam-loc-label').innerText = user.loc;
+        };
 
-    // --- 6. CÁC HÀM UI/LOGIC KHÁC (GIỮ NGUYÊN LOGIC CŨ) ---
-    
-    function updateUI(user) {
-        document.getElementById('welcome-msg').innerText = `👋 Hi, ${user.name}!`;
-        document.getElementById('sidebar-name').innerText = user.name;
-        document.getElementById('sidebar-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=ff8fa3&color=fff`;
-        document.getElementById('info-name-box').innerText = user.name;
-        document.getElementById('info-contact-box').innerText = user.email;
-        document.getElementById('info-dob-box').innerText = "🎂 " + user.dob;
-        if(user.loc) document.getElementById('cam-loc-label').innerText = user.loc;
-    }
+        window.logout = () => { if(confirm("Đăng xuất?")) { if(auth) signOut(auth); else location.reload(); } };
 
-    window.logout = () => {
-        if(confirm("Đăng xuất?")) signOut(auth);
-    };
-
-    // SỬA THÔNG TIN (Lưu lên Database)
-    window.openEditModal = async () => {
-        const user = auth.currentUser;
-        if(user) {
-            const docSnap = await getDoc(doc(db, "users", user.uid));
-            const data = docSnap.data();
-            document.getElementById('edit-name').value = data.name;
-            document.getElementById('edit-contact').value = data.email;
-            document.getElementById('edit-dob').value = data.dob;
-            document.getElementById('edit-modal').classList.remove('hidden');
-        }
-    };
-
-    window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
-
-    window.saveEditInfo = async () => {
-        const user = auth.currentUser;
-        if(user) {
-            const newName = document.getElementById('edit-name').value;
-            const newDob = document.getElementById('edit-dob').value;
-            
-            // Cập nhật lên Database
-            await updateDoc(doc(db, "users", user.uid), {
-                name: newName,
-                dob: newDob
-            });
-            
-            // Cập nhật UI ngay lập tức (giả lập để đỡ phải load lại)
-            document.getElementById('info-name-box').innerText = newName;
-            document.getElementById('info-dob-box').innerText = "🎂 " + newDob;
-            
-            window.closeEditModal();
-            alert("Đã cập nhật lên mây! ☁️");
-        }
-    };
-
-    // ĐỔI MÀU (Lưu lên Database)
-    window.changeColor = async (color, save=true) => {
-        document.documentElement.style.setProperty('--bg-color', color);
-        if(save && auth.currentUser) {
-            await updateDoc(doc(db, "users", auth.currentUser.uid), { color: color });
-        }
-    };
-
-    // CÁC HÀM CƠ BẢN KHÁC (Copy lại từ bản cũ)
-    window.autoGetLocation = () => {
-        const icon = document.querySelector('.btn-loc-icon');
-        icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                document.getElementById('reg-loc').value = `${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)}`;
-                icon.innerHTML = '<i class="fa-solid fa-check" style="color:green"></i>';
-            },
-            (err) => { alert("Lỗi vị trí: " + err.message); icon.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>'; }
-        );
-    };
-
-    window.switchTab = (tabId, el) => {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.menu li').forEach(l => l.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        el.classList.add('active');
-    }
-
-    window.changeFontSize = (size) => {
-        document.body.classList.remove('font-small', 'font-medium', 'font-large');
-        document.body.classList.add(size);
-    }
-    
-    window.toggleTheme = () => document.body.classList.toggle('dark-mode');
-
-    // Camera & Sound (Giữ nguyên logic bản V3)
-    let currentAudio = null;
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // ... (Dán lại hàm playSiren, playChill, triggerWarning, toggleCam từ bản trước vào đây hoặc viết lại ngắn gọn)
-    // Để code gọn, mình viết lại phần kích hoạt nút ở đây:
-    
-    window.triggerWarning = () => {
-        document.getElementById('health-status').className = "alert-box danger";
-        document.getElementById('health-status').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>NGUY HIỂM: Nấm bệnh!</span>';
-        // ... (Cập nhật text bệnh như cũ) ...
+        // --- CÁC CHỨC NĂNG UI ---
+        window.toggleAuthMode = (mode) => {
+            document.getElementById('register-form').classList.toggle('hidden', mode === 'login');
+            document.getElementById('login-form').classList.toggle('hidden', mode !== 'login');
+        };
+        window.switchTab = (tabId, el) => {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.menu li').forEach(l => l.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
+        };
         
-        const soundType = document.getElementById('ringtone-select').value;
-        if(soundType === 'siren') alert("Giả lập tiếng Còi hú (Web Audio API)"); 
-        else alert("Giả lập nhạc Chill");
-        // Bạn copy lại hàm âm thanh xịn ở câu trả lời trước vào đây nhé!
-    };
+        // --- SỬA THÔNG TIN ---
+        window.openEditModal = async () => {
+            let user;
+            if(auth && auth.currentUser) {
+                const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+                user = snap.data();
+            } else { user = JSON.parse(localStorage.getItem('sfUser')); }
+            
+            if(user) {
+                document.getElementById('edit-name').value = user.name;
+                document.getElementById('edit-contact').value = user.contact;
+                document.getElementById('edit-dob').value = user.dob;
+                document.getElementById('edit-modal').classList.remove('hidden');
+            }
+        };
+        window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
+        
+        window.saveEditInfo = async () => {
+            const newData = {
+                name: document.getElementById('edit-name').value,
+                contact: document.getElementById('edit-contact').value,
+                dob: document.getElementById('edit-dob').value
+            };
+            
+            if(auth && auth.currentUser) {
+                await updateDoc(doc(db, "users", auth.currentUser.uid), newData);
+                const snap = await getDoc(doc(db, "users", auth.currentUser.uid)); // Lấy lại full data
+                window.updateUI(snap.data());
+            } else {
+                let user = JSON.parse(localStorage.getItem('sfUser'));
+                Object.assign(user, newData);
+                localStorage.setItem('sfUser', JSON.stringify(user));
+                window.updateUI(user);
+            }
+            window.closeEditModal();
+            alert("Đã lưu thông tin!");
+        };
 
-    window.toggleCam = async () => {
-        const btn = document.getElementById('btn-cam');
-        const img = document.getElementById('cam-img');
-        const video = document.getElementById('webcam-feed');
-        if(btn.innerText === "Kết nối") {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-                img.classList.add('hidden'); video.classList.remove('hidden'); 
-                document.querySelector('.live-tag').style.display = 'block';
-                btn.innerText = "Ngắt"; btn.style.background = "red";
-            } catch (err) { alert("Lỗi Camera: " + err.message); }
-        } else {
-            // Tắt
-            video.srcObject.getTracks().forEach(t => t.stop());
-            img.classList.remove('hidden'); video.classList.add('hidden');
-            document.querySelector('.live-tag').style.display = 'none';
-            btn.innerText = "Kết nối"; btn.style.background = "var(--primary-color)";
-        }
-    };
+        // --- CÀI ĐẶT ---
+        window.changeColor = async (color, save=true) => {
+            document.documentElement.style.setProperty('--bg-color', color);
+            if(save && auth && auth.currentUser) await updateDoc(doc(db, "users", auth.currentUser.uid), { color });
+        };
+        window.changeFontSize = (size) => {
+            document.body.classList.remove('font-small', 'font-medium', 'font-large');
+            document.body.classList.add(size);
+        };
+        window.toggleTheme = () => document.body.classList.toggle('dark-mode');
+        window.autoGetLocation = () => {
+            const icon = document.querySelector('.btn-loc-icon');
+            icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    document.getElementById('reg-loc').value = `${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)}`;
+                    icon.innerHTML = '<i class="fa-solid fa-check" style="color:green"></i>';
+                },
+                (err) => { alert("Lỗi vị trí: " + err.message); icon.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>'; }
+            );
+        };
 
-    setInterval(()=>{
-        const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleTimeString();
-        const camTime = document.getElementById('cam-time-label');
-        if(camTime) camTime.innerText = now.toLocaleTimeString();
-    },1000);
+        // --- ÂM THANH & CẢNH BÁO ---
+        let currentAudio = null;
+        let customSoundURL = null;
 
-</script>
+        window.handleFileUpload = (input) => {
+            const file = input.files[0];
+            if (file) {
+                customSoundURL = URL.createObjectURL(file);
+                document.getElementById('ringtone-select').value = 'custom';
+                alert("✅ Đã tải file: " + file.name);
+            }
+        };
+
+        window.triggerWarning = () => {
+            // UI
+            document.getElementById('health-status').className = "alert-box danger";
+            document.getElementById('health-status').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>NGUY HIỂM!</span>';
+            document.getElementById('val-benh').innerText = "Nấm Phấn Trắng"; document.getElementById('val-benh').style.color = "red";
+            document.getElementById('val-mucdo').innerText = "85% (Cao)"; document.getElementById('val-mucdo').style.color = "red";
+            document.getElementById('val-thuoc').innerText = "Nano Bạc / Sulfur";
+            document.getElementById('val-lieu').innerText = "50ml / 16L nước";
+            document.getElementById('val-gio').innerText = "Phun ngay lập tức!";
+
+            // Sound
+            const soundType = document.getElementById('ringtone-select').value;
+            let soundUrl = "";
+
+            if (soundType === 'siren') {
+                soundUrl = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a";
+            } else if (soundType === 'chill') {
+                soundUrl = "https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.m4a";
+            } else if (soundType === 'custom') {
+                if (!customSoundURL) { alert("Chưa tải file nhạc lên!"); return; }
+                soundUrl = customSoundURL;
+            }
+
+            if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+            currentAudio = new Audio(soundUrl);
+            currentAudio.play().catch(e => alert("Điện thoại chặn tự phát. Bấm lại lần nữa!"));
+        };
+
+        // --- CAMERA ---
+        window.toggleCam = async () => {
+            const btn = document.getElementById('btn-cam');
+            const img = document.getElementById('cam-img');
+            const video = document.getElementById('webcam-feed');
+            if(btn.innerText === "Kết nối") {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    img.classList.add('hidden'); video.classList.remove('hidden'); 
+                    document.querySelector('.live-tag').style.display = 'block';
+                    btn.innerText = "Ngắt"; btn.style.background = "red";
+                } catch (err) { alert("Lỗi Camera: " + err.message); }
+            } else {
+                if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+                video.srcObject = null;
+                img.classList.remove('hidden'); video.classList.add('hidden');
+                document.querySelector('.live-tag').style.display = 'none';
+                btn.innerText = "Kết nối"; btn.style.background = "var(--primary-color)";
+            }
+        };
+
+        setInterval(()=>{
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+            if(document.getElementById('cam-time-label')) 
+                document.getElementById('cam-time-label').innerText = now.toLocaleTimeString();
+        },1000);
+    </script>
 </body>
 </html>

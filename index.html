@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Farm HPU2S 🌷</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- 1. CẤU HÌNH GIAO DIỆN --- */
+        :root {
+            --primary-color: #ff8fa3; 
+            --bg-color: #ffe3e8;      
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #5d5d5d;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --base-font-size: 15px; 
+            --bottom-nav-height: 70px;
+        }
+
+        body.dark-mode {
+            --bg-color: #2f3640;
+            --glass-bg: rgba(47, 54, 64, 0.95);
+            --text-color: #f5f6fa;
+            --primary-color: #a29bfe;
+        }
+
+        body.font-small { --base-font-size: 13px; }
+        body.font-large { --base-font-size: 17px; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Quicksand', sans-serif; transition: all 0.3s; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-color);
+            height: 100vh;
+            color: var(--text-color);
+            font-size: var(--base-font-size);
+        }
+
+        /* --- UI CHUNG --- */
+        .genz-input {
+            width: 100%; padding: 12px 15px; border-radius: 20px;
+            border: 1px solid #ddd; background: #f9f9f9; outline: none; 
+            font-size: var(--base-font-size); margin-top: 5px;
+        }
+        .genz-input:focus { border-color: var(--primary-color); background: white; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { font-size: 0.9em; font-weight: bold; margin-left: 10px; color: var(--primary-color); }
+        .btn-submit { background: var(--primary-color); color: white; border: none; padding: 12px; width: 100%; border-radius: 50px; font-weight: bold; font-size: 1.1em; margin-top: 10px; cursor: pointer; }
+        .hidden { display: none !important; }
+
+        /* --- AUTH SCREEN --- */
+        #auth-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; flex-direction: column; padding: 20px;
+        }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(255, 143, 163, 0.3); text-align: center;
+            width: 100%; max-width: 400px; border: 2px solid white; margin: auto;
+        }
+        .btn-link { background: none; border: none; color: var(--primary-color); text-decoration: underline; cursor: pointer; margin-top: 15px; }
+        .location-wrapper { position: relative; }
+        .btn-loc-icon { position: absolute; right: 10px; top: 55%; transform: translateY(-50%); background: none; border: none; color: var(--primary-color); font-size: 18px; padding: 5px; cursor: pointer;}
+
+        /* --- DASHBOARD --- */
+        #main-app { display: none; height: 100%; width: 100%; }
+        #main-app.active { display: flex; }
+
+        .sidebar {
+            width: 260px; background: var(--glass-bg); padding: 20px;
+            border-right: 1px solid rgba(255,255,255,0.5); display: flex; flex-direction: column;
+            height: 100vh; position: sticky; top: 0;
+        }
+        .menu li {
+            list-style: none; padding: 15px; margin: 10px 0; border-radius: 15px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 10px; white-space: nowrap;
+        }
+        .menu li.active, .menu li:hover { background: var(--primary-color); color: white; }
+        .user-footer { margin-top: auto; display: flex; align-items: center; gap: 10px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px; }
+
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        .grid-box { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+        .card { background: var(--glass-bg); border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+
+        /* Camera & OSD */
+        .video-box { height: 300px; background: #000; border-radius: 15px; position: relative; overflow: hidden; }
+        .video-box video, .video-box img { width: 100%; height: 100%; object-fit: cover; }
+        .live-tag { position: absolute; top: 15px; right: 15px; background: red; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; display: none; font-weight: bold; animation: pulse 1.5s infinite; }
+        
+        /* OSD */
+        .camera-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 15px; color: white;
+            display: flex; flex-direction: column; gap: 5px;
+            text-shadow: 1px 1px 2px black; font-size: 0.9em;
+        }
+        .overlay-row { display: flex; align-items: center; gap: 8px; }
+        .overlay-row i { width: 20px; text-align: center; color: var(--primary-color); }
+        
+        /* Báo cáo */
+        .alert-box { background: #dff9fb; color: #0abde3; padding: 15px; border-radius: 10px; margin-top: 10px; font-weight: bold; display: flex; align-items: center; gap: 10px;}
+        .alert-box.danger { background: #ffdad9; color: #eb4d4b; border: 1px solid red; animation: shake 0.5s; }
+        .health-list { list-style: none; margin-top: 15px; font-size: 0.95em; }
+        .health-list li { margin-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 5px; display: flex; justify-content: space-between;}
+        .health-list b { color: var(--text-color); }
+        .health-list span { font-weight: bold; color: var(--primary-color); }
+
+        /* Settings Grid */
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
+        .profile-card-setting { grid-column: 1 / -1; background: var(--glass-bg); border-radius: 20px; padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .setting-box { background: var(--glass-bg); border-radius: 18px; padding: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .setting-box:hover { border-color: var(--primary-color); transform: translateY(-3px); }
+        .setting-icon { font-size: 1.4em; color: var(--primary-color); background: rgba(255, 143, 163, 0.1); padding: 10px; border-radius: 50%; }
+        .setting-label { font-size: 0.85em; font-weight: bold; margin-bottom: 2px; }
+        .genz-select { padding: 4px; border-radius: 8px; border: 1px solid #ddd; width: 100%; text-align: center; font-size: 0.85em; }
+        .genz-toggle { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
+        .color-picker-wrapper { width: 100%; height: 30px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; cursor: pointer;}
+        .color-picker-wrapper input { width: 150%; height: 150%; transform: translate(-10%, -10%); cursor: pointer; border: none; }
+        .btn-edit-mini { background: #eee; border: none; padding: 5px 10px; border-radius: 10px; cursor: pointer; font-size: 0.8em; }
+
+        /* Modal */
+        #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 25px; width: 90%; max-width: 350px; animation: zoomIn 0.3s; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes zoomIn { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            #main-app.active { flex-direction: column; }
+            .sidebar {
+                position: fixed; bottom: 0; left: 0; width: 100%; height: var(--bottom-nav-height);
+                flex-direction: row; padding: 5px 15px; border-right: none;
+                border-top: 1px solid rgba(255,255,255,0.5); z-index: 1000; justify-content: space-between; background: rgba(255, 255, 255, 0.98);
+            }
+            .sidebar h2, .user-footer { display: none; }
+            .menu { display: flex; width: 100%; justify-content: space-around; padding: 0; }
+            .menu li { flex-direction: column; padding: 8px 5px; margin: 0; font-size: 0.8em; gap: 5px; text-align: center; flex: 1; }
+            .menu li i { font-size: 1.4em; }
+            .main-content { padding: 15px; padding-bottom: calc(var(--bottom-nav-height) + 20px); height: auto; }
+            .grid-box { grid-template-columns: 1fr; gap: 15px; }
+            .settings-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body class="font-medium">
+
+    <div id="auth-screen">
+        <div id="register-form" class="auth-card">
+            <h2 style="color: var(--primary-color);">🌻 Đăng Ký HPU2S Farm</h2>
+            <form onsubmit="handleRegister(event)">
+                <div class="input-group"><label>Họ và Tên</label><input type="text" id="reg-name" class="genz-input" required></div>
+                <div class="input-group"><label>SĐT/Email</label><input type="text" id="reg-contact" class="genz-input" required></div>
+                <div class="input-group"><label>Mật khẩu</label><input type="password" id="reg-pass" class="genz-input" required></div>
+                <div class="input-group"><label>Ngày sinh</label><input type="date" id="reg-dob" class="genz-input" required></div>
+                <div class="input-group">
+                    <label>Vị trí vườn </label>
+                    <div class="location-wrapper">
+                        <input type="text" id="reg-loc" class="genz-input" placeholder="VD: Vườn Sân Thượng" required>
+                        <button type="button" class="btn-loc-icon" onclick="autoGetLocation()"><i class="fa-solid fa-location-crosshairs"></i></button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">Đăng Ký ✨</button>
+                <button type="button" class="btn-link" onclick="toggleAuthMode('login')">Đã có tài khoản? Đăng nhập</button>
+            </form>
+        </div>
+        <div id="login-form" class="auth-card hidden">
+            <h2 style="color: var(--primary-color);">🔐 Đăng Nhập</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="input-group"><label>SĐT/Email</label><input type="text" id="login-contact" class="genz-input" required></div>
+                <div class="input-group"><label>Mật khẩu</label><input type="password" id="login-pass" class="genz-input" required></div>
+                <button type="submit" class="btn-submit">Vào Ngay 🔓</button>
+                <button type="button" class="btn-link" onclick="toggleAuthMode('register')">Đăng ký mới</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <aside class="sidebar">
+            <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 20px;">🌱 HPU2S Farm</h2>
+            <ul class="menu">
+                <li class="active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> <span>Tổng quan</span></li>
+                <li onclick="switchTab('notifications', this)"><i class="fa-solid fa-bell"></i> <span>Thông báo</span></li>
+                <li onclick="switchTab('settings', this)"><i class="fa-solid fa-grid-2"></i> <span>Cài đặt</span></li>
+            </ul>
+            <div class="user-footer">
+                <img src="" id="sidebar-avatar" style="width: 35px; border-radius: 50%;">
+                <div style="overflow: hidden;">
+                    <p style="font-weight: bold; font-size: 0.9em;" id="sidebar-name">User</p>
+                    <small style="cursor: pointer; color: var(--danger);" onclick="logout()">Đăng xuất</small>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <section id="dashboard" class="tab-content active">
+                <div class="header">
+                    <div><h2 id="welcome-msg">👋 Hi, User!</h2></div>
+                    <div><p id="clock" style="font-weight: bold;">00:00:00</p></div>
+                </div>
+                <div class="grid-box">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items: center;">
+                            <h3>🎥 Camera Trực Tiếp</h3>
+                            <button onclick="toggleCam()" id="btn-cam" style="border:none; background:var(--primary-color); color:white; padding:5px 15px; border-radius:20px; cursor:pointer;">Kết nối</button>
+                        </div>
+                        <div class="video-box">
+                            <span class="live-tag" id="live-tag">🔴 LIVE</span>
+                            <img id="cam-img" src="https://images.unsplash.com/photo-1566633806327-68e1525a8479?q=80&w=1000&auto=format&fit=crop">
+                            <video id="webcam-feed" class="hidden" autoplay playsinline muted></video>
+                            <div class="camera-overlay">
+                                <div class="overlay-row"><i class="fa-solid fa-location-dot"></i> <span id="cam-loc-label">Đang cập nhật...</span></div>
+                                <div class="overlay-row"><i class="fa-solid fa-seedling"></i> <span>Vườn Hoa HPU2S 🌼</span></div>
+                                <div class="overlay-row"><i class="fa-regular fa-clock"></i> <span id="cam-time-label">00:00:00</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📝 Báo cáo Sức khỏe</h3>
+                        <div id="health-status" class="alert-box">
+                            <i class="fa-solid fa-shield-check"></i> <span>Trạng thái: Ổn định</span>
+                        </div>
+                        <ul class="health-list">
+                            <li><b>🦠 Bệnh chẩn đoán:</b> <span id="val-benh">Chưa phát hiện</span></li>
+                            <li><b>⚠️ Mức độ hại:</b> <span id="val-mucdo">0% (An toàn)</span></li>
+                            <li><b>💊 Thuốc đề xuất:</b> <span id="val-thuoc">Vitamin B1 (Dưỡng)</span></li>
+                            <li><b>💧 Liều lượng:</b> <span id="val-lieu">2ml / 1 lít nước</span></li>
+                            <li><b>⏰ Thời gian phun:</b> <span id="val-gio">17:30 Chiều nay</span></li>
+                        </ul>
+                        <button onclick="triggerWarning()" style="width:100%; margin-top:20px; padding:12px; border:none; background:var(--danger); color:white; border-radius:15px; cursor:pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);">
+                            🛎 Test Cảnh Báo 
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="settings" class="tab-content">
+                <h2>⚙️ Cài đặt hệ thống</h2>
+                <div class="settings-grid">
+                    <div class="profile-card-setting">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <div class="setting-icon" style="margin:0;"><i class="fa-solid fa-user"></i></div>
+                            <div>
+                                <b id="info-name-box" style="display:block;">...</b>
+                                <small id="info-contact-box" style="color:#888;">...</small> <br>
+                                <small id="info-dob-box" style="color:#888;">...</small>
+                            </div>
+                        </div>
+                        <button class="btn-edit-mini" onclick="openEditModal()"><i class="fa-solid fa-pen"></i> Sửa</button>
+                    </div>
+                    <div class="setting-box">
+                        <div class="setting-icon"><i class="fa-solid fa-palette"></i></div>
+                        <span class="setting-label">Màu nền</span>
+                        <div class="color-picker-wrapper">
+                            <input type="color" value="#ffe3e8" onchange="changeColor(this.value)">
+                        </div>
+                    </div>
+                    <div class="setting-box">
+                        <div class="setting-icon"><i class="fa-solid fa-text-height"></i></div>
+                        <span class="setting-label">Cỡ chữ</span>
+                        <select class="genz-select" onchange="changeFontSize(this.value)">
+                            <option value="font-medium">Vừa</option>
+                            <option value="font-small">Nhỏ</option>
+                            <option value="font-large">Lớn</option>
+                        </select>
+                    </div>
+                    <div class="setting-box">
+                        <div class="setting-icon"><i class="fa-solid fa-music"></i></div>
+                        <span class="setting-label">Nhạc chuông</span>
+                        <select class="genz-select" id="ringtone-select">
+                            <option value="siren">🚨 Còi hú</option>
+                            <option value="chill">🎵 Nhạc Thư Giãn</option>
+                        </select>
+                    </div>
+                    <div class="setting-box">
+                        <div class="setting-icon"><i class="fa-solid fa-moon"></i></div>
+                        <span class="setting-label">Chế độ tối</span>
+                        <input type="checkbox" class="genz-toggle" onchange="toggleTheme()">
+                    </div>
+                </div>
+            </section>
+            
+            <section id="notifications" class="tab-content">
+                 <h2>🔔 Thông báo</h2>
+                 <div class="card" style="margin-top:20px; text-align:center;"><p>Không có thông báo mới.</p></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="edit-modal" class="hidden">
+        <div class="modal-content">
+            <h3 style="text-align:center; color: var(--primary-color);">Sửa Thông Tin</h3>
+            <div class="input-group"><label>Họ tên</label><input type="text" id="edit-name" class="genz-input"></div>
+            <div class="input-group"><label>SĐT/Email</label><input type="text" id="edit-contact" class="genz-input"></div>
+            <div class="input-group"><label>Ngày sinh</label><input type="date" id="edit-dob" class="genz-input"></div>
+            <div style="display:flex; gap:10px; margin-top: 15px;">
+                <button onclick="closeEditModal()" class="btn-submit" style="background:#ddd; color:#333;">Hủy</button>
+                <button onclick="saveEditInfo()" class="btn-submit">Lưu lại</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. AUTH & STORAGE ---
+        function toggleAuthMode(mode) {
+            document.getElementById('register-form').classList.toggle('hidden', mode === 'login');
+            document.getElementById('login-form').classList.toggle('hidden', mode !== 'login');
+        }
+        function handleRegister(e) {
+            e.preventDefault();
+            const user = {
+                name: document.getElementById('reg-name').value,
+                contact: document.getElementById('reg-contact').value,
+                pass: document.getElementById('reg-pass').value,
+                dob: document.getElementById('reg-dob').value,
+                loc: document.getElementById('reg-loc').value, 
+                color: '#ffe3e8'
+            };
+            localStorage.setItem('sfUser', JSON.stringify(user));
+            alert("Đăng ký thành công!");
+            toggleAuthMode('login');
+        }
+        function handleLogin(e) {
+            e.preventDefault();
+            const contact = document.getElementById('login-contact').value;
+            const pass = document.getElementById('login-pass').value;
+            const user = JSON.parse(localStorage.getItem('sfUser'));
+            if (user && user.contact === contact && user.pass === pass) { loginSuccess(user); } 
+            else { alert("Sai thông tin!"); }
+        }
+        function loginSuccess(user) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').classList.add('active');
+            updateUI(user);
+            if(user.color) changeColor(user.color, false); 
+        }
+        function updateUI(user) {
+            document.getElementById('welcome-msg').innerText = `👋 Hi, ${user.name}!`;
+            document.getElementById('sidebar-name').innerText = user.name;
+            document.getElementById('sidebar-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=ff8fa3&color=fff`;
+            document.getElementById('info-name-box').innerText = user.name;
+            document.getElementById('info-contact-box').innerText = user.contact;
+            document.getElementById('info-dob-box').innerText = "🎂 " + user.dob;
+            if(user.loc) { document.getElementById('cam-loc-label').innerText = user.loc; }
+        }
+        function logout() { if(confirm("Đăng xuất?")) location.reload(); }
+
+        // --- 2. EDIT INFO ---
+        function openEditModal() {
+            const user = JSON.parse(localStorage.getItem('sfUser'));
+            if(!user) return;
+            document.getElementById('edit-name').value = user.name;
+            document.getElementById('edit-contact').value = user.contact;
+            document.getElementById('edit-dob').value = user.dob;
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+        function saveEditInfo() {
+            let user = JSON.parse(localStorage.getItem('sfUser'));
+            user.name = document.getElementById('edit-name').value;
+            user.contact = document.getElementById('edit-contact').value;
+            user.dob = document.getElementById('edit-dob').value;
+            localStorage.setItem('sfUser', JSON.stringify(user));
+            updateUI(user);
+            closeEditModal();
+        }
+
+        // --- 3. SETTINGS ---
+        function changeColor(color, save=true) {
+            document.documentElement.style.setProperty('--bg-color', color);
+            if(save) {
+                let user = JSON.parse(localStorage.getItem('sfUser'));
+                if(user) { user.color = color; localStorage.setItem('sfUser', JSON.stringify(user)); }
+            }
+        }
+        function changeFontSize(size) {
+            document.body.classList.remove('font-small', 'font-medium', 'font-large');
+            document.body.classList.add(size);
+        }
+        function toggleTheme(){ document.body.classList.toggle('dark-mode'); }
+        
+        function autoGetLocation() {
+            const icon = document.querySelector('.btn-loc-icon');
+            icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    document.getElementById('reg-loc').value = `${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)}`;
+                    icon.innerHTML = '<i class="fa-solid fa-check" style="color:green"></i>';
+                },
+                (err) => { alert("Lỗi vị trí: " + err.message); icon.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>'; }
+            );
+        }
+
+        async function toggleCam() {
+            const btn = document.getElementById('btn-cam');
+            const img = document.getElementById('cam-img');
+            const video = document.getElementById('webcam-feed');
+            const liveTag = document.getElementById('live-tag');
+            if(btn.innerText === "Kết nối") {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    img.classList.add('hidden'); video.classList.remove('hidden'); liveTag.style.display = "block";
+                    btn.innerText = "Ngắt"; btn.style.background = "red";
+                } catch (err) { alert("Lỗi Camera: " + err.message); }
+            } else {
+                const stream = video.srcObject;
+                if(stream) stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                img.classList.remove('hidden'); video.classList.add('hidden'); liveTag.style.display = "none";
+                btn.innerText = "Kết nối"; btn.style.background = "var(--primary-color)";
+            }
+        }
+
+        // --- 4. HỆ THỐNG ÂM THANH "KHÔNG CẦN LINK" ---
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        // Tạo tiếng còi hú (Siren)
+        function playSiren() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 0.5);
+            osc.frequency.linearRampToValueAtTime(500, audioCtx.currentTime + 1.0);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.0);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 1.0);
+        }
+
+        // Tạo tiếng nhạc Chill (Do-Mi-Sol)
+        function playChillNote(freq, time) {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + time);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime + time);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + time + 0.5);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + time);
+            osc.stop(audioCtx.currentTime + time + 0.5);
+        }
+
+        function playChill() {
+            playChillNote(523.25, 0);   // Do (C5)
+            playChillNote(659.25, 0.2); // Mi (E5)
+            playChillNote(783.99, 0.4); // Sol (G5)
+        }
+
+        function triggerWarning() {
+            // UI
+            document.getElementById('health-status').className = "alert-box danger";
+            document.getElementById('health-status').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>NGUY HIỂM: Nấm bệnh!</span>';
+            document.getElementById('val-benh').innerText = "Nấm Phấn Trắng"; document.getElementById('val-benh').style.color = "red";
+            document.getElementById('val-mucdo').innerText = "85% (Cao)"; document.getElementById('val-mucdo').style.color = "red";
+            document.getElementById('val-thuoc').innerText = "Nano Bạc / Sulfur";
+            document.getElementById('val-lieu').innerText = "50ml / 16L nước";
+            document.getElementById('val-gio').innerText = "Phun ngay lập tức!";
+
+            // Sound
+            const soundType = document.getElementById('ringtone-select').value;
+            if (soundType === 'siren') {
+                playSiren(); setTimeout(playSiren, 1000); setTimeout(playSiren, 2000);
+            } else {
+                playChill(); // Nhạc thánh thót tự tạo
+            }
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.menu li').forEach(l => l.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
+        }
+
+        setInterval(()=>{
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+            document.getElementById('cam-time-label').innerText = now.toLocaleTimeString();
+        },1000);
+    </script>
+</body>
+</html>

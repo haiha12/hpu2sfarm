@@ -219,8 +219,9 @@ function switchTab(tabId, el) {
 
             // Phát nhạc mới
             currentAudio = new Audio(soundUrl);
-                       currentAudio.play().catch(error => {
+            currentAudio.play().catch(error => {
                 console.log("Lỗi phát nhạc:", error);
+                alert("⚠️ Điện thoại chặn tự phát. Hãy chạm vào màn hình 1 lần rồi thử lại!");
             });
         }
 

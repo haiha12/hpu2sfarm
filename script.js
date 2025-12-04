@@ -219,26 +219,10 @@ function switchTab(tabId, el) {
 
             // Phát nhạc mới
             currentAudio = new Audio(soundUrl);
-            // --- CODE MỚI (Copy đè vào đoạn cũ) ---
-
-// Gọi lệnh play
-var playPromise = audio.play(); // Đổi 'audio' thành tên biến của bạn nếu khác
-
-// Kiểm tra xem play() có trả về Promise không (để tránh lỗi trên trình duyệt quá cũ)
-if (playPromise !== undefined) {
-    playPromise.then(_ => {
-        // Play thành công, không làm gì cả
-    })
-    .catch(error => {
-        // NẾU BỊ CHẶN:
-        console.log("Autoplay bị chặn, chờ người dùng click...");
-        
-        // Tạo sự kiện: Chỉ cần người dùng click 1 cái bất kỳ đâu là phát luôn
-        document.addEventListener('click', function() {
-            audio.play();
-        }, { once: true }); // 'once: true' nghĩa là chỉ chạy 1 lần rồi tự hủy
-    });
-}
+                       currentAudio.play().catch(error => {
+                console.log("Lỗi phát nhạc:", error);
+            });
+        }
 
 // Đồng hồ chạy
 setInterval(()=>{document.getElementById('clock').innerText=new Date().toLocaleTimeString();},1000);

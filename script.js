@@ -167,17 +167,63 @@ function switchTab(tabId, el) {
     el.classList.add('active');
 }
 
-let currentAudio = null;
-function triggerWarning() {
-    document.getElementById('health-status').className = "alert-box danger";
-    const soundType = document.getElementById('ringtone-select').value;
-    let soundUrl = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a"; // Siren
-    if(soundType === 'tiktok') soundUrl = "https://assets.mixkit.co/active_storage/sfx/209/209-preview.m4a";
-    
-    if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
-    currentAudio = new Audio(soundUrl);
-    currentAudio.play();
-}
+// --- XỬ LÝ ÂM THANH & FILE GHI ÂM ---
+        let currentAudio = null;
+        let customSoundURL = null; // Biến lưu đường dẫn file ghi âm của bạn
+
+        // 1. Hàm xử lý khi bạn chọn file từ điện thoại
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (file) {
+                // Tạo một đường dẫn ảo (Blob URL) cho file vừa chọn
+                customSoundURL = URL.createObjectURL(file);
+                
+                // Tự động chuyển menu sang chọn "File của bạn"
+                document.getElementById('ringtone-select').value = 'custom';
+                
+                alert("✅ Đã tải file: " + file.name + "\nBấm nút 'Test Cảnh Báo' để nghe thử nhé!");
+            }
+        }
+
+        // 2. Hàm phát cảnh báo (Cập nhật mới)
+        function triggerWarning() {
+            // Hiệu ứng giao diện đỏ
+            document.getElementById('health-status').className = "alert-box danger";
+            document.getElementById('health-status').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>NGUY HIỂM!</span>';
+            // ... (Giữ nguyên các dòng cập nhật text bệnh/thuốc cũ của bạn ở đây) ...
+
+            // --- XỬ LÝ PHÁT NHẠC ---
+            const soundType = document.getElementById('ringtone-select').value;
+            let soundUrl = "";
+
+            if (soundType === 'siren') {
+                // Link còi hú online (MP3) - Dễ chạy trên điện thoại hơn
+                soundUrl = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a";
+            } else if (soundType === 'chill') {
+                // Link nhạc chill
+                soundUrl = "https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.m4a";
+            } else if (soundType === 'custom') {
+                // Nếu chưa tải file mà chọn dòng này
+                if (!customSoundURL) {
+                    alert("Bạn chưa tải file ghi âm lên! Hãy bấm nút '📂 Tải nhạc lên'.");
+                    return;
+                }
+                soundUrl = customSoundURL;
+            }
+
+            // Dừng nhạc cũ nếu đang phát
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+
+            // Phát nhạc mới
+            currentAudio = new Audio(soundUrl);
+            currentAudio.play().catch(error => {
+                console.log("Lỗi phát nhạc:", error);
+                alert("⚠️ Điện thoại chặn tự phát. Hãy chạm vào màn hình 1 lần rồi thử lại!");
+            });
+        }
 
 // Đồng hồ chạy
 setInterval(()=>{document.getElementById('clock').innerText=new Date().toLocaleTimeString();},1000);

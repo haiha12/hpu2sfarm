@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Farm HPU2S🌷</title>
+    <title>Smart Farm HPU2S 🌷</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- 1. SETUP GIAO DIỆN --- */
+        /* --- 1. SETUP GIAO DIỆN (GIỮ NGUYÊN) --- */
         :root {
             --primary-color: #ff8fa3; 
             --bg-color: #ffe3e8;      
@@ -41,29 +41,16 @@
         }
 
         /* --- UI CHUNG --- */
-        .genz-input {
-            width: 100%; padding: 12px 15px; border-radius: 20px;
-            border: 1px solid #ddd; background: #f9f9f9; outline: none; 
-            font-size: var(--base-font-size); margin-top: 5px;
-        }
+        .genz-input { width: 100%; padding: 12px 15px; border-radius: 20px; border: 1px solid #ddd; background: #f9f9f9; outline: none; font-size: var(--base-font-size); margin-top: 5px; }
         .genz-input:focus { border-color: var(--primary-color); background: white; }
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-group label { font-size: 0.9em; font-weight: bold; margin-left: 10px; color: var(--primary-color); }
         .btn-submit { background: var(--primary-color); color: white; border: none; padding: 12px; width: 100%; border-radius: 50px; font-weight: bold; font-size: 1.1em; margin-top: 10px; cursor: pointer; }
         .hidden { display: none !important; }
 
-        /* --- MÀN HÌNH ĐĂNG KÝ/NHẬP --- */
-        #auth-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999; flex-direction: column; padding: 20px; overflow-y: auto;
-        }
-        .auth-card {
-            background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(255, 143, 163, 0.3); text-align: center;
-            width: 100%; max-width: 400px; border: 2px solid white; margin: auto;
-        }
+        /* --- AUTH SCREEN --- */
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); display: flex; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .auth-card { background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(255, 143, 163, 0.3); text-align: center; width: 100%; max-width: 400px; border: 2px solid white; margin: auto; }
         .btn-link { background: none; border: none; color: var(--primary-color); text-decoration: underline; cursor: pointer; margin-top: 15px; }
         .location-wrapper { position: relative; }
         .btn-loc-icon { position: absolute; right: 10px; top: 55%; transform: translateY(-50%); background: none; border: none; color: var(--primary-color); font-size: 18px; padding: 5px; cursor: pointer;}
@@ -72,35 +59,22 @@
         #main-app { display: none; height: 100%; width: 100%; }
         #main-app.active { display: flex; }
 
-        .sidebar {
-            width: 260px; background: var(--glass-bg); padding: 20px;
-            border-right: 1px solid rgba(255,255,255,0.5); display: flex; flex-direction: column;
-            height: 100vh; position: sticky; top: 0;
-        }
-        .menu li {
-            list-style: none; padding: 15px; margin: 10px 0; border-radius: 15px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 10px; white-space: nowrap;
-        }
+        .sidebar { width: 260px; background: var(--glass-bg); padding: 20px; border-right: 1px solid rgba(255,255,255,0.5); display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; }
+        .menu li { list-style: none; padding: 15px; margin: 10px 0; border-radius: 15px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
         .menu li.active, .menu li:hover { background: var(--primary-color); color: white; }
         .user-footer { margin-top: auto; display: flex; align-items: center; gap: 10px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px; }
 
         .main-content { flex: 1; padding: 20px; overflow-y: auto; height: 100vh; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        
         .grid-box { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
         .card { background: var(--glass-bg); border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
 
-        /* CAMERA & OSD */
+        /* CAMERA */
         .video-box { height: 300px; background: #000; border-radius: 15px; position: relative; overflow: hidden; }
         .video-box video, .video-box img { width: 100%; height: 100%; object-fit: cover; }
         .live-tag { position: absolute; top: 15px; right: 15px; background: red; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; display: none; font-weight: bold; animation: pulse 1.5s infinite; }
         
-        .camera-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            padding: 15px; color: white;
-            display: flex; flex-direction: column; gap: 5px;
-            text-shadow: 1px 1px 2px black; font-size: 0.9em;
-        }
+        .camera-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 15px; color: white; display: flex; flex-direction: column; gap: 5px; text-shadow: 1px 1px 2px black; font-size: 0.9em; }
         .overlay-row { display: flex; align-items: center; gap: 8px; }
         .overlay-row i { width: 20px; text-align: center; color: var(--primary-color); }
 
@@ -112,7 +86,7 @@
         .health-list b { color: var(--text-color); }
         .health-list span { font-weight: bold; color: var(--primary-color); }
 
-        /* CÀI ĐẶT (GRID GỌN GÀNG) */
+        /* SETTINGS GRID */
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
         .profile-card-setting { grid-column: 1 / -1; background: var(--glass-bg); border-radius: 20px; padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .setting-box { background: var(--glass-bg); border-radius: 18px; padding: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); transition: transform 0.2s; }
@@ -136,14 +110,10 @@
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* --- MOBILE RESPONSIVE --- */
+        /* --- MOBILE --- */
         @media (max-width: 768px) {
             #main-app.active { flex-direction: column; }
-            .sidebar {
-                position: fixed; bottom: 0; left: 0; width: 100%; height: var(--bottom-nav-height);
-                flex-direction: row; padding: 5px 15px; border-right: none;
-                border-top: 1px solid rgba(255,255,255,0.5); z-index: 1000; justify-content: space-between; background: rgba(255, 255, 255, 0.98);
-            }
+            .sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: var(--bottom-nav-height); flex-direction: row; padding: 5px 15px; border-right: none; border-top: 1px solid rgba(255,255,255,0.5); z-index: 1000; justify-content: space-between; background: rgba(255, 255, 255, 0.98); }
             .sidebar h2, .user-footer { display: none; }
             .menu { display: flex; width: 100%; justify-content: space-around; padding: 0; }
             .menu li { flex-direction: column; padding: 8px 5px; margin: 0; font-size: 0.8em; gap: 5px; text-align: center; flex: 1; }
@@ -164,7 +134,6 @@
                 <div class="input-group"><label>SĐT/Email (Tài khoản)</label><input type="text" id="reg-contact" class="genz-input" required></div>
                 <div class="input-group"><label>Mật khẩu</label><input type="password" id="reg-pass" class="genz-input" required></div>
                 <div class="input-group"><label>Ngày sinh</label><input type="date" id="reg-dob" class="genz-input" required></div>
-                
                 <div class="input-group">
                     <label>Vị trí vườn (Hiển thị trên Camera)</label>
                     <div class="location-wrapper">
@@ -172,7 +141,6 @@
                         <button type="button" class="btn-loc-icon" onclick="autoGetLocation()"><i class="fa-solid fa-location-crosshairs"></i></button>
                     </div>
                 </div>
-
                 <button type="submit" class="btn-submit">Đăng Ký ✨</button>
                 <button type="button" class="btn-link" onclick="toggleAuthMode('login')">Đã có tài khoản? Đăng nhập</button>
             </form>
@@ -222,7 +190,6 @@
                             <span class="live-tag" id="live-tag">🔴 LIVE</span>
                             <img id="cam-img" src="https://images.unsplash.com/photo-1566633806327-68e1525a8479?q=80&w=1000&auto=format&fit=crop">
                             <video id="webcam-feed" class="hidden" autoplay playsinline muted></video>
-
                             <div class="camera-overlay">
                                 <div class="overlay-row"><i class="fa-solid fa-location-dot"></i> <span id="cam-loc-label">Đang cập nhật...</span></div>
                                 <div class="overlay-row"><i class="fa-solid fa-seedling"></i> <span>Vườn Hoa HPU2S🌼</span></div>
@@ -232,7 +199,7 @@
                     </div>
 
                     <div class="card">
-                        <h3>📝 Báo cáo Sức khỏe</h3>
+                        <h3>📝 Báo cáo Sức khỏe cây</h3>
                         <div id="health-status" class="alert-box">
                             <i class="fa-solid fa-shield-check"></i> <span>Trạng thái: Ổn định</span>
                         </div>
@@ -244,7 +211,7 @@
                             <li><b>⏰ Thời gian phun:</b> <span id="val-gio">17:30 Chiều nay</span></li>
                         </ul>
                         <button onclick="triggerWarning()" style="width:100%; margin-top:20px; padding:12px; border:none; background:var(--danger); color:white; border-radius:15px; cursor:pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);">
-                            ⚠️ Test Cảnh Báo
+                            🛎 Test Cảnh Báo
                         </button>
                     </div>
                 </div>
@@ -285,14 +252,14 @@
                     
                     <div class="setting-box">
                         <div class="setting-icon"><i class="fa-solid fa-music"></i></div>
-                        <span class="setting-label">Nhạc chuông</span>
-                        <select class="genz-select" id="ringtone-select">
-                            <option value="siren">🚨 Còi hú</option>
-                            <option value="chill">🎵 Nhạc Chill</option>
-                            <option value="custom">🎤 File của bạn</option>
-                        </select>
+                        <span class="setting-label">Nhạc cảnh báo</span>
+                        <select id="ringtone-select" class="input-box">
+    <option value="siren">🚨 Còi hú (Siren)</option>
+    <option value="chill">🎵 Nhạc Chill</option> 
+    <option value="custom">📂 Nhạc tải lên</option>
+</select>
                         <input type="file" id="custom-file-input" accept="audio/*" style="display: none;" onchange="handleFileUpload(this)">
-                        <button onclick="document.getElementById('custom-file-input').click()" style="margin-top:5px; border:1px dashed var(--primary-color); background:none; padding:3px 8px; border-radius:8px; font-size:0.7em; cursor:pointer;">📂 Tải nhạc</button>
+                        <button onclick="document.getElementById('custom-file-input').click()" style="margin-top:5px; border:1px dashed var(--primary-color); background:none; padding:3px 8px; border-radius:8px; font-size:0.7em; cursor:pointer;">📂 Tải file</button>
                     </div>
                     
                     <div class="setting-box">
@@ -328,7 +295,7 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ⚠️ DÁN MÃ FIREBASE CỦA BẠN VÀO ĐÂY NHÉ ⚠️
+        // ⚠️ DÁN MÃ FIREBASE VÀO ĐÂY ⚠️
         const firebaseConfig = { 
   apiKey : "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M" , 
   authDomain : "hpu2sfarm.firebaseapp.com" , 
@@ -339,52 +306,41 @@
   measurementId : "G-G3FH2ZNDJ0" 
 };
 
-
         let app, auth, db;
-        // Kiểm tra nếu chưa nhập config thì dùng chế độ Offline (LocalStorage)
         try {
             if (firebaseConfig.apiKey) {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
             }
-        } catch (e) { console.log("Chưa cấu hình Firebase, dùng chế độ Offline"); }
+        } catch (e) {}
 
-        // --- HÀM XỬ LÝ AUTH (Tự động chọn Firebase hoặc LocalStorage) ---
+        // --- AUTH & STORAGE ---
+        window.toggleAuthMode = (mode) => {
+            document.getElementById('register-form').classList.toggle('hidden', mode === 'login');
+            document.getElementById('login-form').classList.toggle('hidden', mode !== 'login');
+        }
         window.handleRegister = async (e) => {
             e.preventDefault();
-            const userData = {
+            const user = {
                 name: document.getElementById('reg-name').value,
-                contact: document.getElementById('reg-contact').value, // SĐT gốc
+                contact: document.getElementById('reg-contact').value,
                 pass: document.getElementById('reg-pass').value,
                 dob: document.getElementById('reg-dob').value,
-                loc: document.getElementById('reg-loc').value,
+                loc: document.getElementById('reg-loc').value, 
                 color: '#ffe3e8'
             };
-
-            // Fix lỗi email Firebase
-            let emailAuth = userData.contact;
+            let emailAuth = user.contact;
             if (!emailAuth.includes('@')) emailAuth += "@smartfarm.local";
 
             try {
-                if (auth) { // Nếu có Firebase
-                    document.querySelector('.btn-submit').innerText = "Đang tạo...";
-                    const cred = await createUserWithEmailAndPassword(auth, emailAuth, userData.pass);
-                    await setDoc(doc(db, "users", cred.user.uid), { ...userData, emailAuth });
-                } else { // Nếu dùng Offline
-                    localStorage.setItem('sfUser', JSON.stringify(userData));
-                }
-                alert("Đăng ký thành công!");
-                window.toggleAuthMode('login');
-            } catch (err) {
-                let msg = err.message;
-                if(msg.includes("email-already-in-use")) msg = "Tài khoản đã tồn tại!";
-                if(msg.includes("weak-password")) msg = "Mật khẩu yếu quá (cần 6 ký tự)!";
-                alert("Lỗi: " + msg);
-            }
-            document.querySelector('.btn-submit').innerText = "Đăng Ký 🌵";
-        };
-
+                if (auth) {
+                    const cred = await createUserWithEmailAndPassword(auth, emailAuth, user.pass);
+                    await setDoc(doc(db, "users", cred.user.uid), { ...user, emailAuth });
+                } else { localStorage.setItem('sfUser', JSON.stringify(user)); }
+                alert("Đăng ký thành công!"); toggleAuthMode('login');
+            } catch (err) { alert("Lỗi: " + err.message); }
+        }
         window.handleLogin = async (e) => {
             e.preventDefault();
             const contact = document.getElementById('login-contact').value;
@@ -393,21 +349,15 @@
             if (!emailAuth.includes('@')) emailAuth += "@smartfarm.local";
 
             try {
-                if (auth) {
-                    document.querySelector('#login-form .btn-submit').innerText = "Đang vào...";
-                    await signInWithEmailAndPassword(auth, emailAuth, pass);
-                } else {
+                if (auth) { await signInWithEmailAndPassword(auth, emailAuth, pass); }
+                else {
                     const user = JSON.parse(localStorage.getItem('sfUser'));
-                    if (user && user.contact === contact && user.pass === pass) {
-                        window.loginSuccess(user);
-                    } else { alert("Sai thông tin!"); }
+                    if (user && user.contact === contact && user.pass === pass) window.loginSuccess(user);
+                    else alert("Sai thông tin!");
                 }
-            } catch (err) { alert("Lỗi đăng nhập: " + err.message); }
-            document.querySelector('#login-form .btn-submit').innerText = "Vào Ngay 🔓";
-        };
-
-        // Theo dõi trạng thái Firebase
-        if (auth) {
+            } catch (err) { alert("Lỗi: " + err.message); }
+        }
+        if(auth) {
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     const docSnap = await getDoc(doc(db, "users", user.uid));
@@ -418,14 +368,12 @@
                 }
             });
         }
-
         window.loginSuccess = (user) => {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').classList.add('active');
             window.updateUI(user);
             if(user.color) window.changeColor(user.color, false);
-        };
-
+        }
         window.updateUI = (user) => {
             document.getElementById('welcome-msg').innerText = `👋 Hi, ${user.name}!`;
             document.getElementById('sidebar-name').innerText = user.name;
@@ -434,70 +382,26 @@
             document.getElementById('info-contact-box').innerText = user.contact;
             document.getElementById('info-dob-box').innerText = "🎂 " + user.dob;
             if(user.loc) document.getElementById('cam-loc-label').innerText = user.loc;
-        };
-
+        }
         window.logout = () => { if(confirm("Đăng xuất?")) { if(auth) signOut(auth); else location.reload(); } };
 
-        // --- CÁC CHỨC NĂNG UI ---
-        window.toggleAuthMode = (mode) => {
-            document.getElementById('register-form').classList.toggle('hidden', mode === 'login');
-            document.getElementById('login-form').classList.toggle('hidden', mode !== 'login');
-        };
+        // --- FEATURES ---
         window.switchTab = (tabId, el) => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.menu li').forEach(l => l.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             el.classList.add('active');
-        };
-        
-        // --- SỬA THÔNG TIN ---
-        window.openEditModal = async () => {
-            let user;
-            if(auth && auth.currentUser) {
-                const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
-                user = snap.data();
-            } else { user = JSON.parse(localStorage.getItem('sfUser')); }
-            
-            if(user) {
-                document.getElementById('edit-name').value = user.name;
-                document.getElementById('edit-contact').value = user.contact;
-                document.getElementById('edit-dob').value = user.dob;
-                document.getElementById('edit-modal').classList.remove('hidden');
-            }
-        };
-        window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
-        
-        window.saveEditInfo = async () => {
-            const newData = {
-                name: document.getElementById('edit-name').value,
-                contact: document.getElementById('edit-contact').value,
-                dob: document.getElementById('edit-dob').value
-            };
-            
-            if(auth && auth.currentUser) {
-                await updateDoc(doc(db, "users", auth.currentUser.uid), newData);
-                const snap = await getDoc(doc(db, "users", auth.currentUser.uid)); // Lấy lại full data
-                window.updateUI(snap.data());
-            } else {
-                let user = JSON.parse(localStorage.getItem('sfUser'));
-                Object.assign(user, newData);
-                localStorage.setItem('sfUser', JSON.stringify(user));
-                window.updateUI(user);
-            }
-            window.closeEditModal();
-            alert("Đã lưu thông tin!");
-        };
-
-        // --- CÀI ĐẶT ---
+        }
         window.changeColor = async (color, save=true) => {
             document.documentElement.style.setProperty('--bg-color', color);
             if(save && auth && auth.currentUser) await updateDoc(doc(db, "users", auth.currentUser.uid), { color });
-        };
+        }
         window.changeFontSize = (size) => {
             document.body.classList.remove('font-small', 'font-medium', 'font-large');
             document.body.classList.add(size);
-        };
+        }
         window.toggleTheme = () => document.body.classList.toggle('dark-mode');
+        
         window.autoGetLocation = () => {
             const icon = document.querySelector('.btn-loc-icon');
             icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
@@ -505,51 +409,9 @@
                 (pos) => {
                     document.getElementById('reg-loc').value = `${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)}`;
                     icon.innerHTML = '<i class="fa-solid fa-check" style="color:green"></i>';
-                },
-                (err) => { alert("Lỗi vị trí: " + err.message); icon.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>'; }
+                }, (err) => { alert("Lỗi vị trí: " + err.message); icon.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>'; }
             );
-        };
-
-        // --- ÂM THANH & CẢNH BÁO ---
-        let currentAudio = null;
-        let customSoundURL = null;
-
-        window.handleFileUpload = (input) => {
-            const file = input.files[0];
-            if (file) {
-                customSoundURL = URL.createObjectURL(file);
-                document.getElementById('ringtone-select').value = 'custom';
-                alert("✅ Đã tải file: " + file.name);
-            }
-        };
-
-        window.triggerWarning = () => {
-            // UI
-            document.getElementById('health-status').className = "alert-box danger";
-            document.getElementById('health-status').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>NGUY HIỂM!</span>';
-            document.getElementById('val-benh').innerText = "Nấm Phấn Trắng"; document.getElementById('val-benh').style.color = "red";
-            document.getElementById('val-mucdo').innerText = "85% (Cao)"; document.getElementById('val-mucdo').style.color = "red";
-            document.getElementById('val-thuoc').innerText = "Nano Bạc / Sulfur";
-            document.getElementById('val-lieu').innerText = "50ml / 16L nước";
-            document.getElementById('val-gio').innerText = "Phun ngay lập tức!";
-
-            // Sound
-            const soundType = document.getElementById('ringtone-select').value;
-            let soundUrl = "";
-
-            if (soundType === 'siren') {
-                soundUrl = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a";
-            } else if (soundType === 'chill') {
-                soundUrl = "https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.m4a";
-            } else if (soundType === 'custom') {
-                if (!customSoundURL) { alert("Chưa tải file nhạc lên!"); return; }
-                soundUrl = customSoundURL;
-            }
-
-            if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
-            currentAudio = new Audio(soundUrl);
-            currentAudio.play().catch(e => alert("Hãy thử lại!"));
-        };
+        }
 
         // --- CAMERA ---
         window.toggleCam = async () => {
@@ -573,6 +435,126 @@
             }
         };
 
+        // --- AUDIO ENGINE (CHẠY 100% MỌI THIẾT BỊ) ---
+        let audioCtx = null;
+        let customFileUrl = null;
+        let fileAudio = null; // Đối tượng Audio cho file riêng
+
+        window.handleFileUpload = (input) => {
+            const file = input.files[0];
+            if(file) {
+                customFileUrl = URL.createObjectURL(file);
+                document.getElementById('ringtone-select').value = 'custom';
+                alert("✅ Đã tải file: " + file.name);
+            }
+        };
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        // 1. Còi hú (Oscillator - Chắc chắn kêu)
+        function playSiren() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.4); // Lên
+            osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.8);  // Xuống
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.8);
+        }
+
+        // 2. Nhạc Chill (Chuông gió - Oscillator)
+      function playChillMusic() {
+    if (fileAudioElement) {
+        fileAudioElement.pause();
+        fileAudioElement.currentTime = 0;
+    }
+    // Chắc chắn rằng file chill.mp3 nằm cùng thư mục với file index.html
+    fileAudioElement = new Audio("./chill.mp3");
+    fileAudioElement.play().catch(e => {
+        console.error("Lỗi phát nhạc:", e);
+        alert("⚠️ Không tìm thấy file 'chill.mp3' hoặc bị chặn!");
+    });
+}
+
+// 3. Xử lý file tải lên từ điện thoại
+window.handleFileUpload = (input) => {
+    const file = input.files[0];
+    if(file) {
+        customFileUrl = URL.createObjectURL(file);
+        document.getElementById('ringtone-select').value = 'custom';
+        alert("✅ Đã tải file: " + file.name + "\nBấm nút 'Test Cảnh Báo' để nghe!");
+    }
+};
+
+        // 3. File riêng (Thẻ Audio)
+        function playCustomFile() {
+            if(!customFileUrl) { alert("Chưa tải file nhạc lên!"); return; }
+            if(fileAudio) { fileAudio.pause(); fileAudio.currentTime = 0; }
+            fileAudio = new Audio(customFileUrl);
+            fileAudio.play().catch(e => alert("Chạm màn hình 1 lần rồi thử lại!"));
+        }
+
+        window.triggerWarning = () => {
+            // UI
+            document.getElementById('health-status').className = "alert-box danger";
+            document.getElementById('health-status').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>NGUY HIỂM!</span>';
+            document.getElementById('val-benh').innerText = "Nấm Phấn Trắng"; document.getElementById('val-benh').style.color = "red";
+            document.getElementById('val-mucdo').innerText = "85% (Cao)"; document.getElementById('val-mucdo').style.color = "red";
+            document.getElementById('val-thuoc').innerText = "Nano Bạc"; document.getElementById('val-lieu').innerText = "50ml/16L";
+            document.getElementById('val-gio').innerText = "Phun ngay!";
+
+            // Sound Logic
+            const type = document.getElementById('ringtone-select').value;
+            if (type === 'siren') {
+                playSiren(); setTimeout(playSiren, 800); setTimeout(playSiren, 1600);
+            } else if (type === 'chill') {
+                playChillMusic();
+            } else {
+                playCustomFile();
+            }
+        };
+
+        // --- EDIT MODAL ---
+        window.openEditModal = async () => {
+            let user;
+            if(auth && auth.currentUser) {
+                const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+                user = snap.data();
+            } else { user = JSON.parse(localStorage.getItem('sfUser')); }
+            if(user) {
+                document.getElementById('edit-name').value = user.name;
+                document.getElementById('edit-contact').value = user.contact;
+                document.getElementById('edit-dob').value = user.dob;
+                document.getElementById('edit-modal').classList.remove('hidden');
+            }
+        };
+        window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
+        window.saveEditInfo = async () => {
+            const newData = {
+                name: document.getElementById('edit-name').value,
+                contact: document.getElementById('edit-contact').value,
+                dob: document.getElementById('edit-dob').value
+            };
+            if(auth && auth.currentUser) {
+                await updateDoc(doc(db, "users", auth.currentUser.uid), newData);
+                const snap = await getDoc(doc(db, "users", auth.currentUser.uid)); 
+                window.updateUI(snap.data());
+            } else {
+                let user = JSON.parse(localStorage.getItem('sfUser'));
+                Object.assign(user, newData);
+                localStorage.setItem('sfUser', JSON.stringify(user));
+                window.updateUI(user);
+            }
+            window.closeEditModal(); alert("Đã lưu!");
+        };
+
         setInterval(()=>{
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString();
@@ -581,4 +563,5 @@
         },1000);
     </script>
 </body>
+<audio id="my-local-audio" src="./chill.mp3" preload="auto"></audio>
 </html>

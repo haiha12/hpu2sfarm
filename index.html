@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Smart Farm HPU2S 🌷</title>
-    
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/346/346195.png">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- 1. SETUP GIAO DIỆN (GIỮ NGUYÊN) --- */
+        /* --- 1. SETUP GIAO DIỆN --- */
         :root {
             --primary-color: #ff8fa3; 
             --bg-color: #ffe3e8;      
@@ -69,12 +69,14 @@
         .grid-box { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
         .card { background: var(--glass-bg); border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
 
-        /* CAMERA */
+        /* CAMERA FIX */
         .video-box { height: 300px; background: #000; border-radius: 15px; position: relative; overflow: hidden; }
-        .video-box video, .video-box img { width: 100%; height: 100%; object-fit: cover; }
-        .live-tag { position: absolute; top: 15px; right: 15px; background: red; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; display: none; font-weight: bold; animation: pulse 1.5s infinite; }
+        .video-box video { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        .camera-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 15px; color: white; display: flex; flex-direction: column; gap: 5px; text-shadow: 1px 1px 2px black; font-size: 0.9em; }
+        /* Z-Index Fix: Đảm bảo các overlay luôn nổi trên video */
+        .live-tag { position: absolute; top: 15px; right: 15px; background: red; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; display: none; font-weight: bold; animation: pulse 1.5s infinite; z-index: 10; }
+        .camera-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 15px; color: white; display: flex; flex-direction: column; gap: 5px; text-shadow: 1px 1px 2px black; font-size: 0.9em; z-index: 10; }
+        
         .overlay-row { display: flex; align-items: center; gap: 8px; }
         .overlay-row i { width: 20px; text-align: center; color: var(--primary-color); }
 
@@ -184,11 +186,13 @@
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items: center;">
                             <h3>🎥 Camera Trực Tiếp</h3>
-                            <button onclick="toggleCam()" id="btn-cam" style="border:none; background:var(--primary-color); color:white; padding:5px 15px; border-radius:20px; cursor:pointer;">Kết nối</button>
+                            <button onclick="toggleCam()" id="btn-cam" style="border:none; background:var(--primary-color); color:white; padding:5px 15px; border-radius:20px; cursor:pointer;">
+                                <i class="fa-solid fa-video"></i> Kết nối
+                            </button>
                         </div>
                         <div class="video-box">
                             <span class="live-tag" id="live-tag">🔴 LIVE</span>
-                            
+                            <img id="cam-img" width="10%" src="https://cdn-icons-png.flaticon.com/512/2642/2642651.png">
                             <video id="webcam-feed" class="hidden" autoplay playsinline muted></video>
                             <div class="camera-overlay">
                                 <div class="overlay-row"><i class="fa-solid fa-location-dot"></i> <span id="cam-loc-label">Đang cập nhật...</span></div>
@@ -254,10 +258,10 @@
                         <div class="setting-icon"><i class="fa-solid fa-music"></i></div>
                         <span class="setting-label">Nhạc cảnh báo</span>
                         <select id="ringtone-select" class="input-box">
-    <option value="siren">🚨 Còi hú (Siren)</option>
-    <option value="chill">🎵 Nhạc Chill</option> 
-    <option value="custom">📂 Nhạc tải lên</option>
-</select>
+                            <option value="siren">🚨 Còi hú (Siren)</option>
+                            <option value="chill">🎵 Nhạc Chill</option> 
+                            <option value="custom">📂 Nhạc tải lên</option>
+                        </select>
                         <input type="file" id="custom-file-input" accept="audio/*" style="display: none;" onchange="handleFileUpload(this)">
                         <button onclick="document.getElementById('custom-file-input').click()" style="margin-top:5px; border:1px dashed var(--primary-color); background:none; padding:3px 8px; border-radius:8px; font-size:0.7em; cursor:pointer;">📂 Tải file</button>
                     </div>
@@ -295,16 +299,22 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // --- KHAI BÁO BIẾN TOÀN CỤC CHO SCRIPT ---
+        let fileAudioElement = null; 
+        let audioCtx = null;
+        let customFileUrl = null;
+        let fileAudio = null;
+
         // ⚠️ DÁN MÃ FIREBASE VÀO ĐÂY ⚠️
         const firebaseConfig = { 
-  apiKey : "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M" , 
-  authDomain : "hpu2sfarm.firebaseapp.com" , 
-  projectId : "hpu2sfarm" , 
-  storageBucket : "hpu2sfarm.firebasestorage.app" , 
-  messagingSenderId : "1028216215776" , 
-  appId : "1:1028216215776:web:c324f55584da10b698d885" , 
-  measurementId : "G-G3FH2ZNDJ0" 
-};
+            apiKey : "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M" , 
+            authDomain : "hpu2sfarm.firebaseapp.com" , 
+            projectId : "hpu2sfarm" , 
+            storageBucket : "hpu2sfarm.firebasestorage.app" , 
+            messagingSenderId : "1028216215776" , 
+            appId : "1:1028216215776:web:c324f55584da10b698d885" , 
+            measurementId : "G-G3FH2ZNDJ0" 
+        };
 
         let app, auth, db;
         try {
@@ -413,88 +423,95 @@
             );
         }
 
-        // --- CAMERA ---
+        // --- CAMERA FUNCTION (FIXED BUG 'NULL') ---
         window.toggleCam = async () => {
             const btn = document.getElementById('btn-cam');
             const img = document.getElementById('cam-img');
             const video = document.getElementById('webcam-feed');
-            if(btn.innerText === "Kết nối") {
+            const liveTag = document.getElementById('live-tag');
+
+            // ⚠️ AN TOÀN: Kiểm tra xem các thẻ HTML có tồn tại không
+            if (!btn || !img || !video || !liveTag) {
+                console.error("Lỗi: Không tìm thấy ID element (btn, img, video, hoặc live-tag)");
+                alert("Lỗi giao diện: Vui lòng tải lại trang!");
+                return;
+            }
+
+            if(btn.innerText.includes("Kết nối")) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     video.srcObject = stream;
-                    img.classList.add('hidden'); video.classList.remove('hidden'); 
-                    document.querySelector('.live-tag').style.display = 'block';
-                    btn.innerText = "Ngắt"; btn.style.background = "red";
-                } catch (err) { alert("Lỗi Camera: " + err.message); }
+                    
+                    // Thao tác an toàn
+                    img.classList.add('hidden'); 
+                    video.classList.remove('hidden'); 
+                    liveTag.style.display = 'block';
+
+                    btn.innerHTML = '<i class="fa-solid fa-video-slash"></i> Ngắt'; 
+                    btn.style.background = "red";
+                } catch (err) { 
+                    alert("Lỗi truy cập Camera: " + err.message + "\nHãy kiểm tra quyền truy cập!"); 
+                }
             } else {
-                if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+                // Tắt camera
+                if(video.srcObject) {
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                }
                 video.srcObject = null;
-                img.classList.remove('hidden'); video.classList.add('hidden');
-                document.querySelector('.live-tag').style.display = 'none';
-                btn.innerText = "Kết nối"; btn.style.background = "var(--primary-color)";
+                
+                img.classList.remove('hidden'); 
+                video.classList.add('hidden');
+                liveTag.style.display = 'none';
+
+                btn.innerHTML = '<i class="fa-solid fa-video"></i> Kết nối'; 
+                btn.style.background = "var(--primary-color)";
             }
         };
 
-        // --- AUDIO ENGINE (CHẠY 100% MỌI THIẾT BỊ) ---
-        let audioCtx = null;
-        let customFileUrl = null;
-        let fileAudio = null; // Đối tượng Audio cho file riêng
-
-        window.handleFileUpload = (input) => {
-            const file = input.files[0];
-            if(file) {
-                customFileUrl = URL.createObjectURL(file);
-                document.getElementById('ringtone-select').value = 'custom';
-                alert("✅ Đã tải file: " + file.name);
-            }
-        };
-
+        // --- AUDIO ENGINE ---
         function initAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        // 1. Còi hú (Oscillator - Chắc chắn kêu)
+        // 1. Còi hú 
         function playSiren() {
             initAudio();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sawtooth';
             osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.4); // Lên
-            osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.8);  // Xuống
+            osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.4); 
+            osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.8);  
             gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
             gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.8);
         }
 
-        // 2. Nhạc Chill (Chuông gió - Oscillator)
-      function playChillMusic() {
-        var fileAudioElement = document.getElementById("my-local-audio");
-    if (fileAudioElement) {
-        fileAudioElement.play();
-        fileAudioElement.currentTime = 0;
-    }
-    // Chắc chắn rằng file chill.mp3 nằm cùng thư mục với file index.html
-    fileAudioElement = new Audio("./chill.mp3");
-    fileAudioElement.play().catch(e => {
-        console.error("Lỗi phát nhạc:", e);
-        alert("⚠️ Không tìm thấy file 'chill.mp3' hoặc bị chặn!");
-    });
-}
+        // 2. Nhạc Chill
+        function playChillMusic() {
+            if (fileAudioElement) {
+                fileAudioElement.pause();
+                fileAudioElement.currentTime = 0;
+            }
+            fileAudioElement = new Audio("./chill.mp3");
+            fileAudioElement.play().catch(e => {
+                console.error("Lỗi phát nhạc:", e);
+                alert("⚠️ Không tìm thấy file 'chill.mp3' hoặc bị chặn!");
+            });
+        }
 
-// 3. Xử lý file tải lên từ điện thoại
-window.handleFileUpload = (input) => {
-    const file = input.files[0];
-    if(file) {
-        customFileUrl = URL.createObjectURL(file);
-        document.getElementById('ringtone-select').value = 'custom';
-        alert("✅ Đã tải file: " + file.name + "\nBấm nút 'Test Cảnh Báo' để nghe!");
-    }
-};
+        // 3. File riêng 
+        window.handleFileUpload = (input) => {
+            const file = input.files[0];
+            if(file) {
+                customFileUrl = URL.createObjectURL(file);
+                document.getElementById('ringtone-select').value = 'custom';
+                alert("✅ Đã tải file: " + file.name + "\nBấm nút 'Test Cảnh Báo' để nghe!");
+            }
+        };
 
-        // 3. File riêng (Thẻ Audio)
         function playCustomFile() {
             if(!customFileUrl) { alert("Chưa tải file nhạc lên!"); return; }
             if(fileAudio) { fileAudio.pause(); fileAudio.currentTime = 0; }

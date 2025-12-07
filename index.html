@@ -188,7 +188,7 @@
                         </div>
                         <div class="video-box">
                             <span class="live-tag" id="live-tag">🔴 LIVE</span>
-                            <img id="cam-img" src="https://images.unsplash.com/photo-1566633806327-68e1525a8479?q=80&w=1000&auto=format&fit=crop">
+                            
                             <video id="webcam-feed" class="hidden" autoplay playsinline muted></video>
                             <div class="camera-overlay">
                                 <div class="overlay-row"><i class="fa-solid fa-location-dot"></i> <span id="cam-loc-label">Đang cập nhật...</span></div>
@@ -471,8 +471,9 @@
 
         // 2. Nhạc Chill (Chuông gió - Oscillator)
       function playChillMusic() {
+        var fileAudioElement = document.getElementById("my-local-audio");
     if (fileAudioElement) {
-        fileAudioElement.pause();
+        fileAudioElement.play();
         fileAudioElement.currentTime = 0;
     }
     // Chắc chắn rằng file chill.mp3 nằm cùng thư mục với file index.html

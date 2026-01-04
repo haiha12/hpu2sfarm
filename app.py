@@ -2,12 +2,13 @@ from flask import Flask, render_template, Response, request, redirect, url_for, 
 import cv2
 import pyrebase
 import datetime
+import numpy as np # Thêm thư viện này để tạo ảnh giả khi không có camera
 
 app = Flask(__name__)
 app.secret_key = 'hpu2s_farm_secret'
 
 config = {
-   "apiKey": "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M",
+    "apiKey": "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M",
     "authDomain":"hpu2sfarm.firebaseapp.com",
     "databaseURL": "https://hpu2sfarm-default-rtdb.asia-southeast1.firebasedatabase.app/",
     "projectId":  "hpu2sfarm",
@@ -15,18 +16,19 @@ config = {
     "messagingSenderId": "1028216215776",
     "appId": "1:1028216215776:web:c324f55584da10b698d885"
 }
+
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
-# ---------------------------------------------------------
 
-# --- XỬ LÝ CAMERA IOT ---
+# ---------------------------------------------------------
+# --- XỬ LÝ CAMERA IOT  ---
 def generate_frames():
-    camera = cv2.VideoCapture(0) # 0 là webcam máy tính
+    # camera = cv2.VideoCapture(0) # <--- CÔ ĐÃ KHÓA DÒNG NÀY (Lý do: Server không có Webcam)
+    
     while True:
-        success, frame = camera.read()
-        if not success: break
+        frame = np.zeros((480, 640, 3), dtype=np.uint8) 
         
-        # Giả lập thêm thông tin lên hình ảnh camera
+        cv2.putText(frame, "SERVER RENDER: NO CAMERA", (50, 240), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         cv2.putText(frame, "HPU2S Farm CAM-01", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         
         ret, buffer = cv2.imencode('.jpg', frame)
@@ -42,6 +44,7 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None # Tạo biến lỗi mặc định là không có gì
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -53,9 +56,9 @@ def login():
             session['user'] = user['name']
             return redirect(url_for('dashboard'))
         else:
-            return render_template('index.html', error="Sai tên đăng nhập hoặc mật khẩu!")
+            error = "Sai tên đăng nhập hoặc mật khẩu!"
             
-        return render_template('index.html')
+    return render_template('index.html', error=error)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -98,14 +101,4 @@ def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/logout')
-def logout():
-    session.pop('user', None)
-    return redirect(url_for('login'))
-
-if __name__ == "__main__":
-
-    app.run(debug=True)
-
-
-
-
+def

@@ -55,7 +55,7 @@ def login():
         else:
             return render_template('index.html', error="Sai tên đăng nhập hoặc mật khẩu!")
             
- return render_template('index.html')
+return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -105,3 +105,4 @@ def logout():
 if __name__ == "__main__":
 
     app.run(debug=True)
+

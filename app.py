@@ -76,7 +76,7 @@ def register():
         
         # Lưu lên Cloud
         db.child("users").child(data['username']).set(data)
-        return render_template('login.html', success="Đăng ký thành công! Mời đăng nhập.")
+        return render_template('index.html', success="Đăng ký thành công! Mời đăng nhập.")
         
     return render_template('register.html')
 
@@ -105,5 +105,6 @@ def logout():
 if __name__ == "__main__":
 
     app.run(debug=True)
+
 
 

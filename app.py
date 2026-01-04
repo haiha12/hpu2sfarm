@@ -53,9 +53,9 @@ def login():
             session['user'] = user['name']
             return redirect(url_for('dashboard'))
         else:
-            return render_template('login.html', error="Sai tên đăng nhập hoặc mật khẩu!")
+            return render_template('index.html', error="Sai tên đăng nhập hoặc mật khẩu!")
             
-    return render_template('login.html')
+ return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -103,4 +103,5 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == "__main__":
+
     app.run(debug=True)

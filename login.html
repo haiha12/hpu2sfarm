@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập 🌼</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #e3f2fd; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; }
+        .card-custom { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 20px rgba(144, 202, 249, 0.4); width: 400px; border: 2px solid #bbdefb; }
+        .btn-farm { background: #64b5f6; color: white; border-radius: 50px; font-weight: bold; width: 100%; border: none; padding: 10px; }
+        .btn-farm:hover { background: #42a5f5; }
+        h2 { color: #1976d2; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card-custom text-center">
+        <h2>HPU2S Farm 🌷</h2>
+        <p class="text-muted">Cổng thông tin nông trại</p>
+        
+        {% if success %} <div class="alert alert-success">{{ success }}</div> {% endif %}
+        {% if error %} <div class="alert alert-danger">{{ error }}</div> {% endif %}
+
+        <form action="/login" method="POST" class="mt-4 text-start">
+            <div class="mb-3">
+                <label>Tên đăng nhập</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label>Mật khẩu</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-farm mb-3">Đăng nhập</button>
+        </form>
+        <a href="/register" style="color: #64b5f6;">Đăng ký thành viên mới</a>
+    </div>
+</body>
+</html>

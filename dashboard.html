@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard🍃</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #e3f2fd; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .header { background: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-box { background: white; border-radius: 15px; padding: 20px; border: 2px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); height: 100%; }
+        .camera-frame { width: 100%; border-radius: 10px; border: 3px solid #64b5f6; }
+        .stat-box { background: #e1f5fe; padding: 15px; border-radius: 10px; margin-bottom: 10px; color: #0277bd; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h4 style="color: #1976d2; margin: 0;">🌸 HPU2S Farm Monitor</h4>
+            <div>
+                <span class="me-3">😺Xin chào, <strong>{{ name }}</strong></span>
+                <a href="/logout" class="btn btn-sm btn-outline-danger">Đăng xuất</a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card-box">
+                    <h5 class="mb-3">📹 Camera Giám Sát Khu Vực 1</h5>
+                    <img src="{{ url_for('video_feed') }}" class="camera-frame" alt="Đang tải camera...">
+                    <div class="mt-2 text-muted small">🔴 Trạng thái: Live Stream | Độ trễ: 12ms</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <h5 class="mb-3">📊 Báo Cáo</h5>
+                    
+                    <div class="stat-box">🌡️ Nhiệt độ: {{ report.temp }}</div>
+                    <div class="stat-box">💧 Độ ẩm: {{ report.humidity }}</div>
+                    <div class="stat-box">🌱 Đất: {{ report.soil }}</div>
+                    
+                    <hr>
+                    <div class="alert alert-success">
+                        <strong>Tình trạng chung:</strong><br>
+                        {{ report.status }}
+                    </div>
+                    
+                    <button class="btn btn-primary w-100 mt-2" onclick="alert('Đã gửi lệnh tưới cây!')">💦 Bật tưới tự động</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

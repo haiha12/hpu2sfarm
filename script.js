@@ -1,6 +1,7 @@
 // --- CẤU HÌNH SERVER PYTHON ---
 const AI_SERVER_URL = "http://127.0.0.1:5000/detect"; 
-
+// --- CẤU HÌNH API KEY (Dán dòng này lên đầu file script.js) ---
+const FIREBASE_API_KEY = "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M";
 // 1. NAVIGATION
 function switchView(view) {
     ['registerScreen', 'loginScreen', 'dashboardScreen', 'btnLogout'].forEach(id => {
@@ -148,4 +149,5 @@ function updateReport(data) {
 
 function startClock() {
     setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString('vi-VN'), 1000);
+
 }

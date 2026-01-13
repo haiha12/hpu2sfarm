@@ -41,46 +41,67 @@ const firebaseConfig = {
   appId: "1:1028216215776:web:c324f55584da10b698d885",
   measurementId: "G-G3FH2ZNDJ0"
 };
-
-function handleRegister() {
-    // 1. Lấy thông tin từ các ô nhập
-    const name = document.getElementById('regName').value;
-    const contact = document.getElementById('regContact').value;
-    const pass = document.getElementById('regPass').value;
-    const gps = document.getElementById('regGPS').value;
+// 1. Lấy thông tin từ các ô nhập
+const name = document.getElementById('regName').value;
+const contact = document.getElementById('regContact').value;
+const pass = document.getElementById('regPass').value;
+const gps = document.getElementById('regGPS').value;
 
     // 2. Kiểm tra dữ liệu
-    if (!name || !contact || !pass) {
-        alert("Vui lòng điền đầy đủ: Tên, SĐT và Mật khẩu!");
-        return;
-    }
+if (!name || !contact || !pass) {
+    alert("Vui lòng điền đầy đủ: Tên, SĐT và Mật khẩu!");
+    return;
+}
 
-    // 3. Tạo đối tượng người dùng
-    const user = {
-        name: name,
-        contact: contact,
-        pass: pass,
-        gps: gps,
-        role: 'user',
-        // Tự động thêm key vào dữ liệu mà không cần người dùng nhập
-        apiKey: FIREBASE_API_KEY 
-    };
 
+function handleRegister() {
     // 4. Lưu vào cơ sở dữ liệu (Giả lập bằng LocalStorage)
     // "hpu2s_user_" là tiền tố để tránh trùng với các web khác
     localStorage.setItem('hpu2s_user_' + contact, JSON.stringify(user));
-
+    
     alert("Đăng ký thành công! Mời bạn đăng nhập.");
     switchView('login');
 }
-
+    // 3. Tạo đối tượng người dùng
+const user = {
+    name: name,
+    contact: contact,
+    pass: pass,
+    gps: gps,
+    role: 'user',
+    // Tự động thêm key vào dữ liệu mà không cần người dùng nhập
+    apiKey: FIREBASE_API_KEY 
+};
 function handleLogin() {
+    // 1. Lấy thông tin người dùng nhập vào
     const contact = document.getElementById('loginContact').value;
     const pass = document.getElementById('loginPass').value;
-    const user = JSON.parse(localStorage.getItem('user_' + contact));
-    
-    if(user && user.pass === pass) switchView('dashboard');
-    else alert("Sai tài khoản hoặc mật khẩu!");
+
+    // 2. Kiểm tra xem người dùng có nhập đủ không
+    if (!contact || !pass) {
+        alert("Vui lòng nhập SĐT và Mật khẩu!");
+        return;
+    }
+
+    // 3. Lấy dữ liệu từ LocalStorage
+    // QUAN TRỌNG: Phải dùng đúng từ khóa 'hpu2s_user_' như lúc đăng ký
+    const storedUser = localStorage.getItem('hpu2s_user_' + contact);
+
+    // 4. Kiểm tra logic đăng nhập
+    if (storedUser) {
+        // Nếu tìm thấy tài khoản -> Giải mã từ chuỗi JSON sang đối tượng
+        const user = JSON.parse(storedUser);
+
+        // So sánh mật khẩu
+        if (user.pass === pass) {
+            alert("Đăng nhập thành công! Xin chào " + user.name);
+            switchView('dashboard'); // Chuyển sang màn hình chính
+        } else {
+            alert("Sai mật khẩu rồi! Vui lòng thử lại.");
+        }
+    } else {
+        alert("Tài khoản này chưa tồn tại. Vui lòng đăng ký trước!");
+    }
 }
 
 document.getElementById('btnLogout').onclick = () => { stopCamera(); switchView('login'); };
@@ -151,3 +172,4 @@ function startClock() {
     setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString('vi-VN'), 1000);
 
 }
+

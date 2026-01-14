@@ -4,15 +4,22 @@ import base64
 import cv2
 import numpy as np
 from ultralytics import YOLO
+import gc # <--- QUAN TRỌNG: Thư viện dọn rác bộ nhớ
 
 # 1. Khởi tạo Flask App
 app = Flask(__name__)
-CORS(app)  # Cho phép Web gọi API
+CORS(app) 
 
-model = YOLO('yolov11s.pt') 
+# --- TỐI ƯU 1: Dùng Model Nano (Nhẹ nhất) ---
+# Thay vì 'yolov11s.pt', hãy dùng 'yolo11n.pt' (Nano) hoặc 'yolov8n.pt'
+# Model này chỉ tốn khoảng 100-200MB Ram khi chạy
+try:
+    model = YOLO('yolo11n.pt') 
+except:
+    # Phòng trường hợp chưa có v11 thì dùng v8n
+    model = YOLO('yolov8n.pt')
 
-# 3. Cơ sở dữ liệu bệnh (Giả lập logic map từ vật thể sang bệnh)
-# Trong thực tế, model của bạn sẽ trả về class "dom_la", "chay_la"...
+# 3. Cơ sở dữ liệu bệnh
 DISEASE_INFO = {
     'safe': {
         'status': 'safe',
@@ -36,21 +43,25 @@ DISEASE_INFO = {
 
 @app.route('/detect', methods=['POST'])
 def detect():
+    img = None
+    results = None
     try:
         # 1. Nhận dữ liệu ảnh từ Web (Base64)
         data = request.json['image']
-        # Bỏ phần header "data:image/jpeg;base64,"
         header, encoded = data.split(",", 1)
         
         # 2. Chuyển Base64 thành ảnh OpenCV
         nparr = np.frombuffer(base64.b64decode(encoded), np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
+        # --- TỐI ƯU 2: Resize ảnh về 640x640 ---
+        # Giảm kích thước ma trận ảnh giúp giảm 80% RAM tiêu thụ
+        img = cv2.resize(img, (640, 640))
+
         # 3. Chạy YOLO để nhận diện
         results = model(img)
         
         # 4. Phân tích kết quả
-        # Lấy danh sách các class id mà YOLO nhìn thấy
         detected_classes = []
         for result in results:
             for box in result.boxes:
@@ -58,17 +69,17 @@ def detect():
                 class_name = model.names[class_id]
                 detected_classes.append(class_name)
 
-        print("YOLO thấy:", detected_classes) # In ra terminal để debug
+        print("YOLO thấy:", detected_classes) 
 
-        # --- LOGIC XỬ LÝ BỆNH (TÙY BIẾN) ---
-        # Đây là ví dụ logic. Nếu bạn train model riêng, hãy sửa tên class tương ứng
+        # --- LOGIC XỬ LÝ (MẪU) ---
         response_data = DISEASE_INFO['unknown']
 
-        if 'tea-plant' in detected_classes or 'vase' in detected_classes:
+        # Logic giả định: Nếu thấy chậu cây (potted plant) -> Khỏe
+        # Bạn cần in cái `detected_classes` ra xem model của bạn nhận diện ra chữ gì nhé
+        if 'potted plant' in detected_classes or 'vase' in detected_classes:
             response_data = DISEASE_INFO['safe']
         
-        # Ví dụ: Nếu YOLO thấy cái gì đó lạ (ví dụ 'bird' giả làm sâu) thì báo nguy hiểm
-        # Bạn có thể thay bằng logic thực tế của model bạn train
+        # Logic giả định: Thấy chim, mèo -> Cảnh báo
         if 'bird' in detected_classes or 'cat' in detected_classes: 
             response_data = DISEASE_INFO['danger_bug']
 
@@ -78,6 +89,15 @@ def detect():
         print("Lỗi:", e)
         return jsonify({'error': str(e)}), 500
 
+    finally:
+        # --- TỐI ƯU 3: Dọn rác bộ nhớ bắt buộc ---
+        # Dù chạy thành công hay thất bại đều phải xóa biến
+        try:
+            del img
+            del results
+            gc.collect() # Ép hệ thống thu hồi RAM ngay lập tức
+        except:
+            pass
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-

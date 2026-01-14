@@ -22,7 +22,7 @@ except:
 # 3. Cơ sở dữ liệu bệnh
 DISEASE_INFO = {
     'tea_plant': {
-        'status': 'safe',
+        'status': 'An toàn',
         'disease': 'Cây khỏe mạnh',
         'cause': 'Môi trường, độ ẩm, ánh sáng đạt chuẩn.',
         'solution': 'Tiếp tục duy trì chế độ chăm sóc hiện tại.'
@@ -75,7 +75,7 @@ DISEASE_INFO = {
     },
  
     'unknown': {
-        'status': 'safe',
+        'status': 'Chưa phát hiện cây',
         'disease': 'Chưa phát hiện cây',
         'cause': 'Camera chưa nhìn thấy cây trồng.',
         'solution': 'Điều chỉnh góc quay camera vào cây.'
@@ -142,4 +142,5 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 

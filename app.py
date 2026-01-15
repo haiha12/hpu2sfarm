@@ -14,7 +14,7 @@ CORS(app)
 # Thay vì 'yolov11s.pt', hãy dùng 'yolo11n.pt' (Nano) hoặc 'yolov8n.pt'
 # Model này chỉ tốn khoảng 100-200MB Ram khi chạy
 try:
-    model = YOLO('yolo11n.pt') 
+    model = YOLO('yolo11s.pt') 
 except:
     # Phòng trường hợp chưa có v11 thì dùng v8n
     model = YOLO('yolov8n.pt')
@@ -31,47 +31,47 @@ DISEASE_INFO = {
         'status': 'Bị bệnh',
         'disease': 'Bệnh đốm lá',
         'cause': 'Nấm bệnh (Pestalozzia theae, Colletotrichum camelliae, Cercospora theae)',
-        'solution': 'Dọn sạch cỏ dại, tiêu hủy tàn dư cây bệnh.
-                    Tỉa thưa, cắt tỉa cành để vườn chè thông thoáng, đón nắng.
-                    Tưới nước hợp lý, tránh tưới vào chiều tối làm ướt lá kéo dài.
-                    Cân đối dinh dưỡng, tăng cường lân và kali, tránh bón quá nhiều đạm.
-                    Sử dụng các chế phẩm nấm đối kháng như Trichoderma spp., Bacillus subtilis, Pseudomonas spp...'
+        'solution': 'Dọn sạch cỏ dại, tiêu hủy tàn dư cây bệnh.'
+                    'Tỉa thưa, cắt tỉa cành để vườn chè thông thoáng, đón nắng.'
+                    'Tưới nước hợp lý, tránh tưới vào chiều tối làm ướt lá kéo dài.'
+                    'Cân đối dinh dưỡng, tăng cường lân và kali, tránh bón quá nhiều đạm.'
+                    'Sử dụng các chế phẩm nấm đối kháng như Trichoderma spp., Bacillus subtilis, Pseudomonas spp...'
     },
     'cham_xam': {
         'status': 'Bị bệnh',
         'disease': 'Bệnh chấm xám',
         'cause': 'Nấm Pestalozzia theae',
-        'solution': 'Dọn sạch cỏ dại, lá bệnh, cành khô; cày vùi lá chè sau đốn để tiêu diệt nguồn nấm
-                    Cắt tỉa, loại bỏ cành bệnh
-                    Cân đối dinh dưỡng, tưới nước hợp lý,đảm bảo vường chè thông thoáng
-                    Sử dụng các chế phẩm nấm đối kháng như Trichoderma spp., Bacillus subtilis'
+        'solution': 'Dọn sạch cỏ dại, lá bệnh, cành khô; cày vùi lá chè sau đốn để tiêu diệt nguồn nấm'
+                    'Cắt tỉa, loại bỏ cành bệnh'
+                    'Cân đối dinh dưỡng, tưới nước hợp lý,đảm bảo vường chè thông thoáng'
+                    'Sử dụng các chế phẩm nấm đối kháng như Trichoderma spp., Bacillus subtilis'
     },
     'phong_la': {
         'status': 'Bị bệnh',
         'disease': 'Bệnh phồng lá',
         'cause': 'Nấm Exobasidium vexans',
-        'solution': 'Dọn sạch cỏ dại, lá bệnh, cành khô
-                    Cắt tỉa, vệ sinh vườn chè tránh để cỏ dại um tùm
-                    Cân đối dinh dưỡng, tưới nước hợp lý,đảm bảo vường chè thông thoáng
-                    Sử dụng các chế phẩm nấm đối kháng như Trichoderma spp., Bacillus subtilis, Pseudomonas spp'
+        'solution': 'Dọn sạch cỏ dại, lá bệnh, cành khô'
+                    'Cắt tỉa, vệ sinh vườn chè tránh để cỏ dại um tùm'
+                    'Cân đối dinh dưỡng, tưới nước hợp lý,đảm bảo vường chè thông thoáng'
+                    'Sử dụng các chế phẩm nấm đối kháng như Trichoderma spp., Bacillus subtilis, Pseudomonas spp'
     },
     'chay_la': {
         'status': 'Bị bệnh',
         'disease': 'Bệnh cháy lá',
         'cause': 'Nấm Rhizoctonia solani, Exobasidium spp',
-        'solution': 'Cắt bỏ lá bị bệnh, tỉa cành thông thoáng.
-                    Dùng lưới che hoặc di chuyển cây đến bóng râm.
-                    Tưới vào sáng sớm/chiều mát, giữ đất ẩm đều, tránh úng
-                    Bón phân cân đối, bổ sung vi lượng, đặc biệt khi cây thiếu lân, kali.'
+        'solution': 'Cắt bỏ lá bị bệnh, tỉa cành thông thoáng.'
+                    'Dùng lưới che hoặc di chuyển cây đến bóng râm.'
+                    'Tưới vào sáng sớm/chiều mát, giữ đất ẩm đều, tránh úng'
+                    'Bón phân cân đối, bổ sung vi lượng, đặc biệt khi cây thiếu lân, kali.'
     },
     'thoi_bup': {
         'status': 'Bị bệnh',
         'disease': 'Bệnh thối búp',
         'cause': 'Nấm Colletotrichum theae-sinensis',
-        'solution': 'Thu gom, tiêu hủy cây bệnh, lá rụng
-                    Trồng thưa hoặc tỉa cành để giảm độ ẩm
-                    Tưới vào sáng sớm/chiều mát, giữ đất ẩm đều, tránh úng
-                    Bón phân cân đối, bổ sung lân và kali, không lạm dụng đạm'
+        'solution': 'Thu gom, tiêu hủy cây bệnh, lá rụng'
+                    'Trồng thưa hoặc tỉa cành để giảm độ ẩm'
+                    'Tưới vào sáng sớm/chiều mát, giữ đất ẩm đều, tránh úng'
+                    'Bón phân cân đối, bổ sung lân và kali, không lạm dụng đạm'
     },
  
     'unknown': {
@@ -117,13 +117,23 @@ def detect():
 
         # Logic giả định: Nếu thấy chậu cây (potted plant) -> Khỏe
         # Bạn cần in cái `detected_classes` ra xem model của bạn nhận diện ra chữ gì nhé
-        if 'tea_plant' in detected_classes :
-            response_data = DISEASE_INFO['tea-plant']
-        
-        # Logic giả định: Thấy chim, mèo -> Cảnh báo
-        if 'bird' in detected_classes or 'cat' in detected_classes: 
-            response_data = DISEASE_INFO['danger_bug']
+        if 'tea_plant' in detected_classes:
+            response_data = DISEASE_INFO['tea_plant']
 
+        if 'cham_xam' in detected_classes: 
+            response_data = DISEASE_INFO['cham_xam']
+
+        if 'phong_la' in detected_classes:
+            response_data = DISEASE_INFO['phong_la']
+
+        if 'dom_la' in detected_classes: 
+            response_data = DISEASE_INFO['dom_la']
+
+        if 'chay_la' in detected_classes:
+            response_data = DISEASE_INFO['chay_la']
+
+        if 'thoi_bup' in detected_classes:
+            response_data = DISEASE_INFO['thoi_bup']
         return jsonify(response_data)
 
     except Exception as e:
@@ -142,5 +152,4 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-
 

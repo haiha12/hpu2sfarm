@@ -1,5 +1,5 @@
 // Địa chỉ server Python (Bộ não AI)
-const AI_SERVER_URL = "https://hpu2sfarm-backend.onrender.com/detect"; 
+const AI_SERVER_URL = "https://hpu2sfarm-backend-1p74.onrender.com/detect"; 
 
 // API Key (Dùng để xác thực người dùng - Giả lập)
 const FIREBASE_API_KEY = "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M";
@@ -216,5 +216,6 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+
 
 

@@ -17,7 +17,7 @@ try:
     model = YOLO('yolov11n.pt') 
 except:
     print("Không có v11n, dùng tạm v11n...")
-    model = YOLO('yolov11n.pt')
+    model = YOLO('yolov8n.pt')
 
 # 2. CƠ SỞ DỮ LIỆU BỆNH (Đã sửa lỗi xuống dòng)
 DISEASE_INFO = {
@@ -149,4 +149,5 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 

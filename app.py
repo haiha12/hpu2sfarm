@@ -8,8 +8,11 @@ from ultralytics import YOLO
 import gc  
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
-
+CORS(app, resources={r"/*": {"origins": CORS(app, resources={r"/*": {"origins": [
+    "https://hpu2sfarm-6g8w.onrender.com", 
+    "http://127.0.0.1:5500", 
+    "http://localhost:5500"
+]}})
 model = None
 try:
     print("🔄 Đang tải model YOLOv11 Nano...")
@@ -72,10 +75,8 @@ def detect():
     img = None
     results = None
     try:
-     { "image": "chuỗi_base64_ở_đây" }
         data = request.get_json(force=True, silent=True)
-        
-        if not data:
+        if not data or 'image' not in data:
             return jsonify({'error': 'Không nhận được dữ liệu ảnh'}), 400
 
         img_bytes = base64.b64decode(data)
@@ -135,3 +136,4 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+

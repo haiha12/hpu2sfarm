@@ -67,9 +67,13 @@ video, .iot-stream { width: 100%; height: 100%; object-fit: cover; }
 .status-safe { background: var(--safe); }
 .status-danger { background: var(--danger); animation: pulse 1s infinite; }
 .status-waiting { background: #ccc; }
-
+/* BẮT BUỘC PHẢI CÓ ĐỂ CHUYỂN TRANG */
+.hidden {
+    display: none !important;
+}
 .detail-report { grid-column: 1 / -1; background: #F0F4F8; padding: 20px; border-radius: var(--radius); border: 2px dashed var(--baby-blue); }
 .report-item { margin-bottom: 8px; }
 .label { font-weight: bold; color: var(--baby-blue-dark); }
+
 
 @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.02);} 100% {transform: scale(1);} }

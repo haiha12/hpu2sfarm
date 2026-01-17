@@ -175,5 +175,3 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
-
-

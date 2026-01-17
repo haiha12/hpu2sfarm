@@ -8,7 +8,7 @@ import gc # Dọn rác bộ nhớ
 
 # 1. Khởi tạo Flask App
 app = Flask(__name__)
-CORS(app) 
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # --- TỐI ƯU 1: BẮT BUỘC Dùng Model Nano (n) ---
 # Render Free chỉ có 512MB RAM. Dùng bản 's' là sập ngay lập tức.
@@ -16,8 +16,8 @@ try:
     print("Đang tải model Nano...")
     model = YOLO('yolov11n.pt') 
 except:
-    print("Không có v11n, dùng tạm v8n...")
-    model = YOLO('yolov8n.pt')
+    print("Không có v11n, dùng tạm v11n...")
+    model = YOLO('yolov11n.pt')
 
 # 2. CƠ SỞ DỮ LIỆU BỆNH (Đã sửa lỗi xuống dòng)
 DISEASE_INFO = {
@@ -149,3 +149,4 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+

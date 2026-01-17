@@ -161,19 +161,29 @@ let scanningInterval = null;
 let isProcessing = false; // Cờ đánh dấu để không gửi spam nếu mạng lag
 
 // ======================================================
-// CÁC HÀM XỬ LÝ
+// BIẾN TOÀN CỤC & CẤU HÌNH
 // ======================================================
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+let stream = null;
+let scanningInterval = null;
+let isProcessing = false;
 
-// 1. Hàm bật Camera và TỰ ĐỘNG QUÉT
+// ĐỔI LINK NÀY THÀNH LINK SERVER ĐÚNG CỦA BẠN (Lấy từ ảnh chụp màn hình)
+const API_URL = 'https://hpu2sfarm-backend-1ho4.onrender.com/detect'; 
+
+// ======================================================
+// 1. HÀM BẬT CAMERA VÀ TỰ ĐỘNG QUÉT
+// ======================================================
 async function startRealTimeCamera() {
     try {
         const videoEl = document.getElementById('video');
         
-        // Mở Camera sau
+        // Xin quyền truy cập Camera
         stream = await navigator.mediaDevices.getUserMedia({
             video: { 
-                facingMode: 'environment',
-                width: { ideal: 640 },  // Giảm độ phân giải chút cho nhẹ
+                facingMode: 'environment', // Ưu tiên cam sau
+                width: { ideal: 640 },
                 height: { ideal: 480 }
             }
         });
@@ -181,33 +191,34 @@ async function startRealTimeCamera() {
         videoEl.srcObject = stream;
         videoEl.style.display = 'block';
         
-        // Bắt đầu vòng lặp quét (2 giây 1 lần)
+        // Bắt đầu vòng lặp quét (2 giây/lần)
         startScanningLoop();
 
     } catch (err) {
         console.error("Lỗi Camera:", err);
-        alert("Không mở được Camera. Vui lòng cấp quyền!");
+        alert("Không mở được Camera. Hãy kiểm tra quyền truy cập!");
     }
 }
 
-// 2. Vòng lặp tự động gửi ảnh (Core của Real-time)
+// ======================================================
+// 2. VÒNG LẶP GỬI ẢNH
+// ======================================================
 function startScanningLoop() {
-    // Nếu đang chạy rồi thì thôi
     if (scanningInterval) clearInterval(scanningInterval);
-
-    // Cài đặt: Cứ 2000ms (2 giây) thì chạy hàm processFrame 1 lần
+    // Cài đặt 2 giây gửi 1 lần
     scanningInterval = setInterval(processFrame, 2000);
 }
 
-// 3. Hàm xử lý từng khung hình
+// ======================================================
+// 3. XỬ LÝ KHUNG HÌNH (CẮT ẢNH TỪ VIDEO)
+// ======================================================
 async function processFrame() {
-    // Nếu đang bận xử lý ảnh trước hoặc camera chưa bật -> Bỏ qua
+    // Nếu đang bận xử lý ảnh trước hoặc chưa có luồng video -> Bỏ qua
     if (isProcessing || !stream) return;
 
     try {
-        isProcessing = true; // Đánh dấu là đang bận
+        isProcessing = true; // Khóa lại, đánh dấu đang bận
 
-        // Lấy khung hình từ video vẽ lên canvas ẩn
         const videoEl = document.getElementById('video');
         const canvasEl = document.getElementById('canvas');
         
@@ -216,13 +227,14 @@ async function processFrame() {
             return;
         }
 
+        // Vẽ video lên canvas
         canvasEl.width = videoEl.videoWidth;
         canvasEl.height = videoEl.videoHeight;
         const ctx = canvasEl.getContext('2d');
         ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
 
-        // Chuyển thành Base64
-        const base64Image = canvasEl.toDataURL('image/jpeg', 0.7); // Nén chất lượng 0.7 cho nhẹ
+        // Nén ảnh thành Base64 (chất lượng 0.6 cho nhẹ)
+        const base64Image = canvasEl.toDataURL('image/jpeg', 0.6);
         
         // Gửi lên Server
         await sendToServer(base64Image);
@@ -230,20 +242,24 @@ async function processFrame() {
     } catch (err) {
         console.error("Lỗi xử lý frame:", err);
     } finally {
-        isProcessing = false; // Xử lý xong, mở cờ để nhận ảnh tiếp theo
+        isProcessing = false; // Mở khóa để xử lý ảnh tiếp theo
     }
 }
 
-// 4. Gửi dữ liệu lên AI Server
+// ======================================================
+// 4. GỬI DỮ LIỆU LÊN SERVER AI
+// ======================================================
 async function sendToServer(base64String) {
-    const API_URL = 'https://hpu2sfarm-backend-1ho4.onrender.com/detect';
+    // Cắt bỏ phần đầu "data:image/jpeg;base64,"
     const imageCode = base64String.split(',')[1];
     const resultDiv = document.getElementById('realtime-result');
 
     try {
-        // Hiện trạng thái đang quét...
-        resultDiv.innerHTML = "🔍 Đang phân tích...";
-        resultDiv.style.color = "orange";
+        // Hiện chữ đang quét
+        if(resultDiv) {
+            resultDiv.innerHTML = "🔍 Đang phân tích...";
+            resultDiv.style.color = "orange";
+        }
 
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -253,33 +269,71 @@ async function sendToServer(base64String) {
 
         const data = await response.json();
 
-        // Cập nhật kết quả lên màn hình mà không cần reload
-        if (data.disease_name) {
-            resultDiv.innerHTML = `🌿 <b>${data.disease_name}</b><br><small>Độ tin cậy: ${(data.confidence * 100).toFixed(1)}%</small>`;
-            
-            // Đổi màu chữ tùy kết quả
-            if (data.disease_name === "Healthy" || data.disease_name === "Khỏe mạnh") {
-                resultDiv.style.color = "green";
-            } else {
-                resultDiv.style.color = "red";
-            }
-        } else {
-            resultDiv.innerHTML = "❓ Không nhận diện được";
+        // --- CẬP NHẬT GIAO DIỆN ---
+        
+        // 1. Cập nhật dòng chữ dưới video
+        if (data.disease_name && resultDiv) {
+            resultDiv.innerHTML = `🌿 <b>${data.disease_name}</b> (${(data.confidence * 100).toFixed(0)}%)`;
+            resultDiv.style.color = (data.disease_name === "Healthy") ? "green" : "red";
         }
 
+        // 2. Cập nhật bảng báo cáo chi tiết (Hàm updateReport cũ của bạn)
+        // Chuẩn hóa dữ liệu để khớp với hàm updateReport
+        const reportData = {
+            disease: data.disease_name || "Không rõ",
+            cause: data.cause || "Đang cập nhật...",
+            solution: data.solution || "Đang cập nhật...",
+            status: (data.disease_name === "Healthy" || data.disease_name === "Khỏe mạnh") ? "safe" : "danger"
+        };
+        
+        updateReport(reportData);
+
     } catch (error) {
-        console.error(error);
-        resultDiv.innerHTML = "⚠️ Mất kết nối Server";
+        console.error("Lỗi kết nối:", error);
+        if(resultDiv) resultDiv.innerHTML = "⚠️ Mất kết nối Server";
     }
 }
 
-// 5. Hàm dừng quét (khi tắt trang hoặc bấm dừng)
+// ======================================================
+// 5. CẬP NHẬT BẢNG KẾT QUẢ CHI TIẾT (UI)
+// ======================================================
+function updateReport(data) {
+    // Kiểm tra xem các thẻ HTML có tồn tại không trước khi gán
+    const nameEl = document.getElementById('aiDiseaseName');
+    const causeEl = document.getElementById('aiCause');
+    const solEl = document.getElementById('aiSolution');
+    const statusEl = document.getElementById('plantStatus');
+
+    if (nameEl) nameEl.innerText = data.disease;
+    if (causeEl) causeEl.innerText = data.cause;
+    if (solEl) solEl.innerText = data.solution;
+
+    if (statusEl) {
+        if (data.status === 'safe') {
+            statusEl.className = 'status-display status-safe';
+            statusEl.innerHTML = '<i class="fas fa-check-circle"></i> AN TOÀN';
+        } else {
+            statusEl.className = 'status-display status-danger';
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> NGUY HIỂM';
+        }
+    }
+}
+
+// ======================================================
+// 6. DỪNG QUÉT
+// ======================================================
 function stopScanning() {
     if (scanningInterval) clearInterval(scanningInterval);
-    if (stream) stream.getTracks().forEach(track => track.stop());
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
     stream = null;
-    document.getElementById('video').style.display = 'none';
-    document.getElementById('realtime-result').innerHTML = "";
+    
+    const videoEl = document.getElementById('video');
+    const resultDiv = document.getElementById('realtime-result');
+    
+    if(videoEl) videoEl.style.display = 'none';
+    if(resultDiv) resultDiv.innerHTML = "🛑 Đã dừng";
 }
 // Cập nhật giao diện kết quả
 function updateReport(data) {
@@ -313,6 +367,7 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+
 
 
 

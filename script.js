@@ -1,10 +1,14 @@
 // ============================================================
 // 1. CẤU HÌNH HỆ THỐNG
 // ============================================================
-// Lưu ý: Kiểm tra lại link backend xem là 1ho4 hay 1p74 (lấy link đang chạy ổn định)
-const API_URL = "https://hpu2sfarm-backend-1ho4.onrender.com/detect"; 
+
+// Địa chỉ server Python (Bộ não AI)
+const AI_SERVER_URL = "https://hpu2sfarm-backend-1ho4.onrender.com/detect"; 
+
 // API Key (Dùng để xác thực người dùng - Giả lập)
 const FIREBASE_API_KEY = "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M";
+
+// Cấu hình Firebase (Để hiển thị hoặc mở rộng sau này)
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
   authDomain: "hpu2sfarm.firebaseapp.com",
@@ -15,161 +19,204 @@ const firebaseConfig = {
   appId: "1:1028216215776:web:c324f55584da10b698d885",
   measurementId: "G-G3FH2ZNDJ0"
 };
-let stream = null;
-let scanningInterval = null;
-let isProcessing = false;
 
-// --- 1. CHUYỂN MÀN HÌNH ---
-function switchView(viewName) {
-    // Ẩn hết
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('registerScreen').classList.add('hidden');
-    document.getElementById('dashboardScreen').classList.add('hidden');
+// ============================================================
+// 2. ĐIỀU HƯỚNG MÀN HÌNH (NAVIGATION)
+// ============================================================
+function switchView(view) {
+    // Ẩn tất cả các màn hình trước
+    ['registerScreen', 'loginScreen', 'dashboardScreen', 'btnLogout'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.add('hidden');
+    });
 
-    // Hiện cái cần hiện
-    const target = document.getElementById(viewName + 'Screen');
-    if (target) target.classList.remove('hidden');
-
-    if (viewName === 'dashboard') startClock();
+    // Hiển thị màn hình được chọn
+    if(view === 'login') {
+        document.getElementById('loginScreen').classList.remove('hidden');
+    }
+    if(view === 'register') {
+        document.getElementById('registerScreen').classList.remove('hidden');
+    }
+    if(view === 'dashboard') {
+        document.getElementById('dashboardScreen').classList.remove('hidden');
+        document.getElementById('btnLogout').classList.remove('hidden');
+        
+        // Khởi động các chức năng chính khi vào Dashboard
+        startClock();
+        initCamera();
+        startAI_Loop(); 
+    }
 }
 
-// --- 2. ĐĂNG KÝ ---
+// ============================================================
+// 3. XỬ LÝ TÀI KHOẢN & GPS (AUTHENTICATION)
+// ============================================================
+
+// Hàm lấy tọa độ GPS
+function getGPS() {
+    if(navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            document.getElementById('regGPS').value = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+        }, () => {
+            alert("Không thể lấy vị trí. Hãy kiểm tra quyền truy cập!");
+        });
+    } else {
+        alert("Trình duyệt không hỗ trợ GPS");
+    }
+}
+
+// --- HÀM ĐĂNG KÝ (Đã sửa lỗi logic) ---
 function handleRegister() {
+    // 1. Lấy dữ liệu (Phải nằm TRONG hàm để lấy giá trị mới nhất lúc bấm nút)
     const name = document.getElementById('regName').value;
     const contact = document.getElementById('regContact').value;
     const pass = document.getElementById('regPass').value;
+    const gps = document.getElementById('regGPS').value;
 
+    // 2. Kiểm tra dữ liệu rỗng
     if (!name || !contact || !pass) {
-        alert("Vui lòng điền hết các ô!");
+        alert("Vui lòng điền đầy đủ: Tên, SĐT và Mật khẩu!");
         return;
     }
 
-    // Lưu user vào bộ nhớ trình duyệt
-    const user = { name, contact, pass };
-    localStorage.setItem('user_' + contact, JSON.stringify(user));
+    // 3. Tạo đối tượng người dùng
+    const user = {
+        name: name,
+        contact: contact,
+        pass: pass,
+        gps: gps,
+        role: 'user',
+        apiKey: FIREBASE_API_KEY, // Tự động gắn Key vào
+        createdAt: new Date().toISOString()
+    };
+
+    // 4. Lưu vào LocalStorage
+    localStorage.setItem('hpu2s_user_' + contact, JSON.stringify(user));
     
-    alert("Đăng ký thành công! Hãy đăng nhập nhé.");
+    alert("Đăng ký thành công! Mời bạn đăng nhập.");
     switchView('login');
 }
 
-// --- 3. ĐĂNG NHẬP ---
+// --- HÀM ĐĂNG NHẬP ---
 function handleLogin() {
+    // 1. Lấy thông tin nhập vào
     const contact = document.getElementById('loginContact').value;
     const pass = document.getElementById('loginPass').value;
 
+    // 2. Kiểm tra rỗng
     if (!contact || !pass) {
-        alert("Nhập số điện thoại và mật khẩu đi bạn ơi!");
+        alert("Vui lòng nhập SĐT và Mật khẩu!");
         return;
     }
 
-    // Lấy user từ bộ nhớ
-    const savedUser = localStorage.getItem('user_' + contact);
-    
-    if (savedUser) {
-        const user = JSON.parse(savedUser);
+    // 3. Tìm kiếm trong LocalStorage
+    const storedUser = localStorage.getItem('hpu2s_user_' + contact);
+
+    // 4. Xử lý kết quả
+    if (storedUser) {
+        const user = JSON.parse(storedUser);
         if (user.pass === pass) {
-            // Đăng nhập đúng -> Vào Dashboard
-            document.getElementById('userNameDisplay').innerText = user.name;
+            alert("Đăng nhập thành công! Xin chào " + user.name);
             switchView('dashboard');
         } else {
-            alert("Sai mật khẩu rồi!");
+            alert("Sai mật khẩu rồi! Vui lòng thử lại.");
         }
     } else {
-        alert("Tài khoản này chưa đăng ký!");
+        alert("Tài khoản chưa tồn tại. Vui lòng đăng ký trước!");
     }
 }
 
-function handleLogout() {
-    stopScanning();
-    switchView('login');
-}
+// Xử lý nút Đăng xuất
+document.getElementById('btnLogout').onclick = () => { 
+    stopCamera(); 
+    switchView('login'); 
+};
 
-// --- 4. CAMERA & AI ---
-async function startRealTimeCamera() {
+// ============================================================
+// 4. CAMERA & TRÍ TUỆ NHÂN TẠO (AI LOGIC)
+// ============================================================
+let videoStream;
+let aiInterval;
+
+// Khởi động Camera
+async function initCamera() {
     try {
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' }
-        });
-        const video = document.getElementById('video');
-        video.srcObject = stream;
-        video.style.display = 'block'; // Hiện video lên
-        
-        document.getElementById('realtime-result').innerText = "🔍 Đang soi...";
-        
-        if (scanningInterval) clearInterval(scanningInterval);
-        scanningInterval = setInterval(processFrame, 2000); // 2 giây gửi 1 lần
-
-    } catch (err) {
-        alert("Lỗi camera: " + err);
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        document.getElementById('webcamVideo').srcObject = videoStream;
+    } catch(e) { 
+        console.error("Lỗi Camera:", e); 
+        alert("Không bật được Camera. Hãy kiểm tra quyền truy cập!");
     }
 }
 
-async function processFrame() {
-    if (isProcessing || !stream) return;
-    isProcessing = true;
+// Tắt Camera
+function stopCamera() {
+    if(videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+    }
+    clearInterval(aiInterval); // Dừng gửi ảnh cho AI
+}
 
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+// Vòng lặp gửi ảnh cho AI (2 giây/lần)
+function startAI_Loop() {
+    aiInterval = setInterval(() => {
+        const video = document.getElementById('webcamVideo');
+        const canvas = document.getElementById('aiCanvas');
+        const context = canvas.getContext('2d');
+
+        // Chỉ chạy khi video đang hiện
+        if (video.classList.contains('hidden') || !videoStream) return;
+
+        // 1. Vẽ ảnh từ video lên canvas
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        
-        const base64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
-        await sendToAI(base64);
-    }
-    isProcessing = false;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // 2. Nén ảnh thành chuỗi Base64
+        const dataURL = canvas.toDataURL('image/jpeg', 0.7); // Nén chất lượng 0.7 cho nhẹ
+
+        // 3. Gửi sang Python
+        fetch(AI_SERVER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: dataURL })
+        })
+        .then(response => response.json())
+        .then(data => updateReport(data))
+        .catch(err => console.log("AI Server chưa bật hoặc lỗi:", err));
+
+    }, 2000); 
 }
 
-async function sendToAI(image) {
-    const resDiv = document.getElementById('realtime-result');
-    try {
-        const req = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: image })
-        });
-        const data = await req.json();
-        
-        // Hiển thị kết quả
-        if(data.disease_name) {
-            resDiv.innerHTML = `🌿 ${data.disease_name} (${(data.confidence*100).toFixed(0)}%)`;
-            resDiv.style.color = (data.disease_name === 'Healthy') ? 'green' : 'red';
-            
-            // Cập nhật báo cáo
-            document.getElementById('aiDiseaseName').innerText = data.disease_name;
-            document.getElementById('aiSolution').innerText = data.solution || "Đang cập nhật...";
-            
-            const statusEl = document.getElementById('plantStatus');
-            if(data.disease_name === 'Healthy' || data.disease_name === 'Cây khỏe mạnh') {
-                 statusEl.innerText = "✅ CÂY KHỎE";
-                 statusEl.style.color = "green";
-            } else {
-                 statusEl.innerText = "⚠️ CÂY BỆNH";
-                 statusEl.style.color = "red";
-            }
-        }
-    } catch (e) {
-        console.log(e);
+// Cập nhật giao diện kết quả
+function updateReport(data) {
+    const statusEl = document.getElementById('plantStatus');
+    
+    // Hiển thị thông tin
+    document.getElementById('aiDiseaseName').innerText = data.disease;
+    document.getElementById('aiCause').innerText = data.cause;
+    document.getElementById('aiSolution').innerText = data.solution;
+
+    // Đổi màu sắc cảnh báo
+    if (data.status === 'safe') {
+        statusEl.className = 'status-display status-safe';
+        statusEl.innerHTML = '<i class="fas fa-check-circle"></i> AN TOÀN';
+    } else {
+        statusEl.className = 'status-display status-danger';
+        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> NGUY HIỂM';
     }
 }
 
-function stopScanning() {
-    if (scanningInterval) clearInterval(scanningInterval);
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    document.getElementById('video').style.display = 'none';
-    document.getElementById('realtime-result').innerText = "Đã dừng.";
-}
-
+// Đồng hồ hệ thống
 function startClock() {
     setInterval(() => {
-        document.getElementById('clock').innerText = new Date().toLocaleTimeString('vi-VN');
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString('vi-VN');
     }, 1000);
 }
 
-// Khởi chạy: Vào màn hình Login
-document.addEventListener('DOMContentLoaded', () => {
+// --- KHỞI CHẠY MẶC ĐỊNH ---
+// Khi mở web lên, vào màn hình Đăng nhập đầu tiên
+document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
-

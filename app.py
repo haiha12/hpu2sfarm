@@ -10,12 +10,11 @@ import gc # Dọn rác bộ nhớ
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 @app.after_request
-def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
-
 # --- TỐI ƯU 1: BẮT BUỘC Dùng Model Nano (n) ---
 # Render Free chỉ có 512MB RAM. Dùng bản 's' là sập ngay lập tức.
 try:
@@ -155,6 +154,7 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 
 

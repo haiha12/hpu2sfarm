@@ -58,16 +58,30 @@
 
         <div id="dashboardScreen" class="dashboard hidden">
             <div class="camera-section">
-                <video id="webcamVideo" autoplay playsinline muted></video>
-                <canvas id="aiCanvas" style="display:none;"></canvas>
-                <img id="iotImage" class="iot-stream hidden" src="" alt="IoT Stream">
-                
-                <div class="camera-controls">
-                    <select id="cameraSource" onchange="changeCameraSource()">
-                        <option value="webcam">🖥️ Webcam Laptop</option>
-                        <option value="iot1">📹 IoT Cam 1</option>
-                        <option value="iot2">📹 IoT Cam 2</option>
-                    </select>
+<h3>Chẩn đoán thời gian thực</h3>
+    
+    <div style="position: relative; display: inline-block;">
+        <video id="video" autoplay playsinline style="width: 100%; max-width: 500px; border-radius: 10px; background: #000; display: none;"></video>
+        
+        <div id="realtime-result" style="
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            min-height: 50px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;">
+            Sẵn sàng quét...
+        </div>
+    </div>
+    
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <div style="margin-top: 15px;">
+        <button onclick="startRealTimeCamera()" class="btn">🚀 Bắt đầu Quét AI</button>
+        <button onclick="stopScanning()" class="btn" style="background: #dc3545; margin-left: 10px;">🛑 Dừng lại</button>
+    </div>
                 </div>
             </div>
 
@@ -96,3 +110,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+

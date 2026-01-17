@@ -9,12 +9,45 @@ import gc # Dọn rác bộ nhớ
 # 1. Khởi tạo Flask App
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    return response
+import base64
+import numpy as np
+import cv2
+from flask import Flask, request, jsonify
+
+# ... (Các phần code cũ giữ nguyên) ...
+
+@app.route('/detect', methods=['POST'])
+def detect():
+    try:
+        # Kiểm tra xem dữ liệu gửi lên là File hay là Base64 (từ Camera)
+        if 'image' in request.json: 
+            # --- XỬ LÝ ẢNH TỪ CAMERA ---
+            image_data = request.json['image']
+            # Giải mã Base64 thành ảnh
+            img_bytes = base64.b64decode(image_data)
+            nparr = np.frombuffer(img_bytes, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        elif 'file' in request.files:
+            # --- XỬ LÝ ẢNH TỪ NÚT UPLOAD CŨ ---
+            file = request.files['file']
+            file_bytes = np.frombuffer(file.read(), np.uint8)
+            img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        
+        else:
+            return jsonify({"error": "Không tìm thấy ảnh"}), 400
+
+        # --- ĐOẠN NÀY LÀ CHẠY YOLO (Giữ nguyên code cũ của bạn) ---
+        results = model(img)
+        # ... (Code xử lý kết quả YOLO của bạn) ...
+        
+        return jsonify({
+            "disease_name": result_name, # Ví dụ
+            "confidence": result_conf
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 # --- TỐI ƯU 1: BẮT BUỘC Dùng Model Nano (n) ---
 # Render Free chỉ có 512MB RAM. Dùng bản 's' là sập ngay lập tức.
 try:
@@ -154,6 +187,7 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 
 

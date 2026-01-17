@@ -156,32 +156,76 @@ function stopCamera() {
 // Vòng lặp gửi ảnh cho AI (2 giây/lần)
 function startAI_Loop() {
     aiInterval = setInterval(() => {
-        const video = document.getElementById('webcamVideo');
-        const canvas = document.getElementById('aiCanvas');
-        const context = canvas.getContext('2d');
+       const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const capturedImage = document.getElementById('captured-image');
+const btnCapture = document.getElementById('btn-capture');
+let stream = null;
 
-        // Chỉ chạy khi video đang hiện
-        if (video.classList.contains('hidden') || !videoStream) return;
+// 1. Hàm bật Camera
+async function startCamera() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: 'environment', // Ưu tiên Camera sau
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        capturedImage.style.display = 'none';
+        btnCapture.style.display = 'inline-block';
+    } catch (err) {
+        alert("Không bật được Camera! (Hãy kiểm tra quyền truy cập)");
+    }
+}
 
-        // 1. Vẽ ảnh từ video lên canvas
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+// 2. Hàm chụp ảnh và gửi về Server
+async function captureImage() {
+    if (!stream) return;
 
-        // 2. Nén ảnh thành chuỗi Base64
-        const dataURL = canvas.toDataURL('image/jpeg', 0.7); // Nén chất lượng 0.7 cho nhẹ
+    // Vẽ hình từ video lên canvas
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
 
-        // 3. Gửi sang Python
-        fetch(AI_SERVER_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: dataURL })
-        })
-        .then(response => response.json())
-        .then(data => updateReport(data))
-        .catch(err => console.log("AI Server chưa bật hoặc lỗi:", err));
+    // Chuyển thành dạng dữ liệu Base64
+    const base64Image = canvas.toDataURL('image/jpeg');
 
-    }, 2000); 
+    // Hiển thị ảnh vừa chụp
+    capturedImage.src = base64Image;
+    capturedImage.style.display = 'block';
+    video.style.display = 'none';
+    
+    // Tắt camera cho đỡ tốn pin
+    stream.getTracks().forEach(track => track.stop());
+    btnCapture.style.display = 'none';
+
+    // Gửi lên Server (Backend)
+    sendToServer(base64Image);
+}
+
+async function sendToServer(base64String) {
+    // Tách phần đầu "data:image/jpeg;base64," ra, chỉ lấy mã code
+    const imageCode = base64String.split(',')[1];
+
+    try {
+        console.log("Đang gửi ảnh...");
+        const response = await fetch('https://hpu2sfarm-backend-1p74.onrender.com/detect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: imageCode }) // Gửi dạng JSON
+        });
+
+        const data = await response.json();
+        console.log("Kết quả:", data);
+        alert(`Bệnh: ${data.disease_name}\nĐộ tin cậy: ${data.confidence}`);
+        
+    } catch (error) {
+        console.error(error);
+        alert("Lỗi kết nối Server!");
+    }
 }
 
 // Cập nhật giao diện kết quả
@@ -216,6 +260,7 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+
 
 
 

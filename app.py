@@ -1,183 +1,151 @@
+# app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import base64
 import cv2
 import numpy as np
 from ultralytics import YOLO
-import gc # Dọn rác bộ nhớ
+import gc  # Thư viện dọn rác bộ nhớ (Quan trọng cho Render Free)
 
-# 1. Khởi tạo Flask App
+# 1. KHỞI TẠO APP
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-import base64
-import numpy as np
-import cv2
-from flask import Flask, request, jsonify
 
-# ... (Các phần code cũ giữ nguyên) ...
-
-@app.route('/detect', methods=['POST'])
-def detect():
-    try:
-        # Kiểm tra xem dữ liệu gửi lên là File hay là Base64 (từ Camera)
-        if 'image' in request.json: 
-            # --- XỬ LÝ ẢNH TỪ CAMERA ---
-            image_data = request.json['image']
-            # Giải mã Base64 thành ảnh
-            img_bytes = base64.b64decode(image_data)
-            nparr = np.frombuffer(img_bytes, np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        
-        elif 'file' in request.files:
-            # --- XỬ LÝ ẢNH TỪ NÚT UPLOAD CŨ ---
-            file = request.files['file']
-            file_bytes = np.frombuffer(file.read(), np.uint8)
-            img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-        
-        else:
-            return jsonify({"error": "Không tìm thấy ảnh"}), 400
-
-        # --- ĐOẠN NÀY LÀ CHẠY YOLO (Giữ nguyên code cũ của bạn) ---
-        results = model(img)
-        # ... (Code xử lý kết quả YOLO của bạn) ...
-        
-        return jsonify({
-            "disease_name": result_name, # Ví dụ
-            "confidence": result_conf
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-# --- TỐI ƯU 1: BẮT BUỘC Dùng Model Nano (n) ---
-# Render Free chỉ có 512MB RAM. Dùng bản 's' là sập ngay lập tức.
+# 2. LOAD MODEL (Tối ưu cho Server yếu)
+# Render Free chỉ có 512MB RAM. Dùng bản 'n' (Nano) là tốt nhất.
+model = None
 try:
-    print("Đang tải model Nano...")
+    print("🔄 Đang tải model YOLOv11 Nano...")
     model = YOLO('yolov11n.pt') 
-except:
-    print("Không có v11n, dùng tạm v11n...")
+except Exception as e:
+    print(f"⚠️ Lỗi tải v11n, chuyển sang v8n: {e}")
     model = YOLO('yolov8n.pt')
 
-# 2. CƠ SỞ DỮ LIỆU BỆNH (Đã sửa lỗi xuống dòng)
+# 3. CƠ SỞ DỮ LIỆU BỆNH
 DISEASE_INFO = {
     'tea_plant': {
-        'status': 'An toàn',
+        'status': 'safe',
         'disease': 'Cây khỏe mạnh',
         'cause': 'Môi trường, độ ẩm, ánh sáng đạt chuẩn.',
         'solution': 'Tiếp tục duy trì chế độ chăm sóc hiện tại.'
     },
     'dom_la': {
-        'status': 'Bị bệnh',
+        'status': 'danger',
         'disease': 'Bệnh đốm lá',
         'cause': 'Nấm bệnh (Pestalozzia theae, Colletotrichum camelliae...)',
-        'solution': '''Dọn sạch cỏ dại, tiêu hủy tàn dư cây bệnh.
-                       Tỉa thưa, cắt tỉa cành để vườn chè thông thoáng.
-                       Tưới nước hợp lý, tránh tưới chiều tối.
-                       Cân đối dinh dưỡng, tăng lân và kali.'''
+        'solution': 'Dọn sạch cỏ dại, tiêu hủy tàn dư. Tỉa thưa, cắt tỉa cành.'
     },
     'cham_xam': {
-        'status': 'Bị bệnh',
+        'status': 'danger',
         'disease': 'Bệnh chấm xám',
         'cause': 'Nấm Pestalozzia theae',
-        'solution': '''Dọn sạch cỏ dại, lá bệnh, cành khô.
-                       Cày vùi lá chè sau đốn để tiêu diệt nguồn nấm.
-                       Sử dụng chế phẩm nấm đối kháng (Trichoderma).'''
+        'solution': 'Dọn sạch cỏ dại, cày vùi lá bệnh. Dùng chế phẩm Trichoderma.'
     },
     'phong_la': {
-        'status': 'Bị bệnh',
+        'status': 'danger',
         'disease': 'Bệnh phồng lá',
         'cause': 'Nấm Exobasidium vexans',
-        'solution': '''Vệ sinh vườn chè tránh để cỏ dại um tùm.
-                       Cân đối dinh dưỡng, đảm bảo vườn chè thông thoáng.
-                       Phun thuốc phòng trừ khi độ ẩm cao.'''
+        'solution': 'Phun thuốc phòng trừ khi độ ẩm cao. Đảm bảo thông thoáng.'
     },
     'chay_la': {
-        'status': 'Bị bệnh',
+        'status': 'danger',
         'disease': 'Bệnh cháy lá',
         'cause': 'Nấm Rhizoctonia solani, Exobasidium spp',
-        'solution': '''Cắt bỏ lá bị bệnh, tỉa cành thông thoáng.
-                       Dùng lưới che hoặc di chuyển cây đến bóng râm.
-                       Giữ đất ẩm đều, tránh úng.'''
+        'solution': 'Cắt bỏ lá bệnh. Dùng lưới che hoặc di chuyển cây vào bóng râm.'
     },
     'thoi_bup': {
-        'status': 'Bị bệnh',
+        'status': 'danger',
         'disease': 'Bệnh thối búp',
         'cause': 'Nấm Colletotrichum theae-sinensis',
-        'solution': '''Thu gom, tiêu hủy cây bệnh.
-                       Trồng thưa hoặc tỉa cành giảm độ ẩm.
-                       Bón phân cân đối, không lạm dụng đạm.'''
+        'solution': 'Thu gom cây bệnh. Bón phân cân đối, giảm đạm.'
     },
     'unknown': {
-        'status': 'Chưa phát hiện cây',
+        'status': 'unknown',
         'disease': 'Không nhận diện được',
-        'cause': 'Camera chưa nhìn rõ cây.',
+        'cause': 'Camera chưa nhìn rõ cây hoặc không phải cây chè.',
         'solution': 'Vui lòng đưa camera lại gần lá cây và giữ yên.'
     }
 }
 
-# --- THÊM ROUTE TRANG CHỦ (Để hết lỗi 404 khi vào bằng trình duyệt) ---
+# 4. ROUTE TRANG CHỦ (Để kiểm tra Server sống hay chết)
 @app.route('/')
 def home():
-    return "<h1>HPU2 Farm Backend đang chạy! 🚀</h1><p>Gửi POST request đến /detect để nhận diện.</p>"
+    return "<h1>🌿 HPU2 Farm Backend is Running! 🚀</h1>"
 
+# 5. ROUTE XỬ LÝ NHẬN DIỆN (Duy nhất 1 hàm)
 @app.route('/detect', methods=['POST'])
 def detect():
     img = None
     results = None
     try:
-        # 1. Nhận dữ liệu ảnh từ Web (Base64)
+        # --- BƯỚC 1: NHẬN ẢNH TỪ FRONTEND ---
+        # Frontend gửi lên dạng JSON: { "image": "chuỗi_base64_ở_đây" }
         data = request.json.get('image')
-        if not data:
-             return jsonify({'error': 'No image sent'}), 400
-
-        header, encoded = data.split(",", 1)
         
-        # 2. Chuyển Base64 thành ảnh OpenCV
-        nparr = np.frombuffer(base64.b64decode(encoded), np.uint8)
+        if not data:
+            return jsonify({'error': 'Không nhận được dữ liệu ảnh'}), 400
+
+        # --- BƯỚC 2: GIẢI MÃ BASE64 THÀNH ẢNH OPENCV ---
+        # Vì Frontend đã cắt phần 'data:image...' rồi, nên ta decode trực tiếp
+        img_bytes = base64.b64decode(data)
+        nparr = np.frombuffer(img_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # --- TỐI ƯU 2: Resize ảnh về 640x640 ---
+        # --- BƯỚC 3: RESIZE ẢNH (Tối ưu tốc độ) ---
+        # Resize về 640x640 giúp AI chạy nhanh hơn
         img = cv2.resize(img, (640, 640))
 
-        # 3. Chạy YOLO để nhận diện
+        # --- BƯỚC 4: CHẠY YOLO ---
         results = model(img)
         
-        # 4. Lấy danh sách tên class
+        # --- BƯỚC 5: LẤY KẾT QUẢ ---
         detected_classes = []
+        max_conf = 0
+        
         for result in results:
             for box in result.boxes:
                 class_id = int(box.cls[0])
-                # Kiểm tra id có hợp lệ không
+                conf = float(box.conf[0])
+                
                 if class_id < len(model.names):
                     class_name = model.names[class_id]
                     detected_classes.append(class_name)
+                    if conf > max_conf:
+                        max_conf = conf
 
-        print("YOLO thấy:", detected_classes) 
+        print("🔍 AI thấy:", detected_classes) 
 
-        # --- LOGIC XỬ LÝ ƯU TIÊN (Priority Logic) ---
-        response_data = DISEASE_INFO['unknown']
+        # --- BƯỚC 6: LOGIC ƯU TIÊN (Quan trọng) ---
+        # Ưu tiên báo BỆNH trước -> Nếu không có bệnh mới báo KHỎE -> Không thấy gì báo UNKNOWN
+        
+        response_data = DISEASE_INFO['unknown'] # Mặc định là không rõ
+        
         found_disease = False 
 
-        # BƯỚC 1: Tìm BỆNH trước (Quan trọng nhất)
+        # 6.1. Quét tìm bệnh
         for name in detected_classes:
-            # Nếu tên đó nằm trong từ điển VÀ không phải cây khỏe, không phải unknown
             if name in DISEASE_INFO and name != 'tea_plant' and name != 'unknown':
                 response_data = DISEASE_INFO[name]
                 found_disease = True
-                break # Thấy bệnh là dừng ngay, báo luôn
+                break # Thấy bệnh là chốt luôn
 
-        # BƯỚC 2: Nếu không có bệnh, mới kiểm tra xem có cây chè không
+        # 6.2. Nếu không có bệnh, kiểm tra xem có phải cây chè khỏe không
         if not found_disease:
             if 'tea_plant' in detected_classes:
                 response_data = DISEASE_INFO['tea_plant']
 
+        # Gắn thêm độ tin cậy vào kết quả trả về
+        response_data['confidence'] = max_conf
+        response_data['disease_name'] = response_data['disease'] # Để khớp với Frontend
+
         return jsonify(response_data)
 
     except Exception as e:
-        print("Lỗi:", e)
+        print("❌ Lỗi Server:", str(e))
         return jsonify({'error': str(e)}), 500
 
     finally:
-        # --- TỐI ƯU 3: Dọn rác bộ nhớ ---
+        # --- BƯỚC 7: DỌN DẸP BỘ NHỚ (Bắt buộc cho Render) ---
         try:
             del img
             del results
@@ -187,8 +155,3 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-
-
-
-
-

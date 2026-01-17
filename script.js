@@ -1,4 +1,4 @@
-const AI_SERVER_URL = "https://hpu2sfarm-backend-1ho4.onrender.com/detect"; 
+const AI_SERVER_URL = "https://hpu2sfarm-backend-eecw.onrender.com/detect"; 
 
 const FIREBASE_API_KEY = "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M";
 
@@ -175,4 +175,5 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+
 

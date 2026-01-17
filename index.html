@@ -10,72 +10,89 @@
 </head>
 <body>
 
-    <div id="loginScreen" style="
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: white; z-index: 9999; display: flex; flex-direction: column;
-        align-items: center; justify-content: center;">
-        
-        <h2>Chào mừng đến HPU2 Farm 🌿</h2>
-        <p>Vui lòng đăng nhập để tiếp tục</p>
-        
-        <input type="text" placeholder="Tên đăng nhập" style="padding: 10px; margin: 10px; width: 80%; max-width: 300px;">
-        <input type="password" placeholder="Mật khẩu" style="padding: 10px; margin: 10px; width: 80%; max-width: 300px;">
-        
-        <button onclick="handleLogin()" style="
-            padding: 12px 30px; background: #28a745; color: white;
-            border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
-            Vào Vườn 🌷
-        </button>
-    </div>
-
-    <div id="dashboardScreen" style="display: none; padding: 20px;">
-        
-        <h1>Hệ Thống Giám Sát Cây Trồng</h1>
-        <hr>
-
-        <div class="camera-section" style="background: #f4f4f4; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
-            <h3>🎥 Chẩn đoán thời gian thực</h3>
+    <div class="container">
+        <header class="header">
+            <div class="brand">
+                <span style="font-size: 30px;">🌷</span>
+                <h2>HPU2S Farm</h2>
+            </div>
+            <button id="btnLogout" class="btn hidden small-btn">Đăng xuất</button>
+        </header>
+<div id="registerScreen" class="auth-screen hidden">
+            <h3>Đăng ký thành viên</h3>
             
-            <div style="position: relative; display: inline-block;">
-                <video id="video" autoplay playsinline style="width: 100%; max-width: 500px; border-radius: 10px; background: #000; display: none;"></video>
-                <div id="realtime-result" style="margin-top: 10px; font-weight: bold; font-size: 18px; min-height: 30px;">Sẵn sàng quét...</div>
+            <div class="input-group">
+                <label>Họ và tên</label>
+                <input type="text" id="regName" placeholder="Nhập tên của bạn">
             </div>
-            <canvas id="canvas" style="display:none;"></canvas>
+            
+            <div class="input-group">
+                <label>SĐT / Email</label>
+                <input type="text" id="regContact" placeholder="SĐT để đăng nhập">
+            </div>
+            
+            <div class="input-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="regPass" placeholder="******">
+            </div>
+            
+            <div class="input-group">
+                <label>Tọa độ GPS</label>
+                <div class="gps-box">
+                    <input type="text" id="regGPS" readonly placeholder="Chưa lấy tọa độ">
+                    <button class="btn gps-btn" onclick="getGPS()">📍 Lấy GPS</button>
+                </div>
+            </div>
 
-            <div style="margin-top: 10px;">
-                <button onclick="startRealTimeCamera()" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px;">🚀 Bật Camera</button>
-                <button onclick="stopScanning()" style="background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-left: 10px;">🛑 Dừng</button>
-            </div>
+            <button class="btn" onclick="handleRegister()">Đăng Ký</button>
+            <span class="switch-link" onclick="switchView('login')">Đã có tài khoản? Đăng nhập</span>
         </div>
 
-        <div class="report-section" style="border: 1px solid #ddd; padding: 15px; border-radius: 10px;">
-            <h3>📊 Báo Cáo Chi Tiết</h3>
-            
-            <div id="plantStatus" class="status-display" style="font-weight: bold; margin-bottom: 10px;">
-                Chưa có dữ liệu
-            </div>
-
-            <table style="width: 100%; text-align: left;">
-                <tr>
-                    <td style="font-weight: bold; width: 100px;">Tên bệnh:</td>
-                    <td id="aiDiseaseName">---</td>
-                </tr>
-                <tr>
-                    <td style="font-weight: bold;">Nguyên nhân:</td>
-                    <td id="aiCause">---</td>
-                </tr>
-                <tr>
-                    <td style="font-weight: bold;">Giải pháp:</td>
-                    <td id="aiSolution">---</td>
-                </tr>
-            </table>
+        <div id="loginScreen" class="auth-screen">
+            <h3>Đăng nhập</h3>
+            <div class="input-group"><label>Tài khoản</label><input type="text" id="loginContact"></div>
+            <div class="input-group"><label>Mật khẩu</label><input type="password" id="loginPass"></div>
+            <button class="btn" onclick="handleLogin()">Vào Vườn 🌷</button>
+            <span class="switch-link" onclick="switchView('register')">Chưa có tài khoản? Đăng ký</span>
         </div>
 
+        <div id="dashboardScreen" class="dashboard hidden">
+            <div class="camera-section">
+                <video id="webcamVideo" autoplay playsinline muted></video>
+                <canvas id="aiCanvas" style="display:none;"></canvas>
+                <img id="iotImage" class="iot-stream hidden" src="" alt="IoT Stream">
+                
+                <div class="camera-controls">
+                    <select id="cameraSource" onchange="changeCameraSource()">
+                        <option value="webcam">🖥️ Webcam Laptop</option>
+                        <option value="iot1">📹 IoT Cam 1</option>
+                        <option value="iot2">📹 IoT Cam 2</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="status-panel">
+                <div class="card">
+                    <div>Giờ thực tế</div>
+                    <div id="clock" class="time-display">00:00:00</div>
+                </div>
+                <div class="card">
+                    <div>Tình trạng</div>
+                    <div id="plantStatus" class="status-display status-waiting">
+                        <i class="fas fa-sync fa-spin"></i> Đang quét...
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-report">
+                <h3>📋 Kết quả chẩn đoán (YOLOv11)</h3>
+                <div class="report-item"><span class="label">Bệnh:</span> <span id="aiDiseaseName">---</span></div>
+                <div class="report-item"><span class="label">Nguyên nhân:</span> <span id="aiCause">---</span></div>
+                <div class="report-item"><span class="label">Giải pháp:</span> <span id="aiSolution">---</span></div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
-
-

@@ -15,173 +15,161 @@ const firebaseConfig = {
   appId: "1:1028216215776:web:c324f55584da10b698d885",
   measurementId: "G-G3FH2ZNDJ0"
 };
-// Biến toàn cục cho Camera
 let stream = null;
 let scanningInterval = null;
 let isProcessing = false;
 
-// ============================================================
-// 2. ĐIỀU HƯỚNG & XỬ LÝ TÀI KHOẢN (Auth & Navigation)
-// ============================================================
-
-// Hàm chuyển đổi màn hình
+// --- 1. CHUYỂN MÀN HÌNH ---
 function switchView(viewName) {
-    // 1. Ẩn tất cả các màn hình
-    const screens = ['loginScreen', 'registerScreen', 'dashboardScreen'];
-    screens.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
+    // Ẩn hết
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('registerScreen').classList.add('hidden');
+    document.getElementById('dashboardScreen').classList.add('hidden');
 
-    // 2. Hiện màn hình được chọn
-    const selectedScreen = document.getElementById(viewName + 'Screen');
-    if (selectedScreen) {
-        selectedScreen.style.display = 'block'; // Hoặc 'flex' tùy CSS
-    }
+    // Hiện cái cần hiện
+    const target = document.getElementById(viewName + 'Screen');
+    if (target) target.classList.remove('hidden');
 
-    // 3. Xử lý logic riêng cho Dashboard
-    if (viewName === 'dashboard') {
-        startClock();
-        // Không tự bật camera ngay, để người dùng bấm nút mới bật
-    }
+    if (viewName === 'dashboard') startClock();
 }
 
-// Hàm Đăng Ký
+// --- 2. ĐĂNG KÝ ---
 function handleRegister() {
     const name = document.getElementById('regName').value;
     const contact = document.getElementById('regContact').value;
     const pass = document.getElementById('regPass').value;
 
     if (!name || !contact || !pass) {
-        alert("Vui lòng điền đầy đủ thông tin!");
+        alert("Vui lòng điền hết các ô!");
         return;
     }
 
+    // Lưu user vào bộ nhớ trình duyệt
     const user = { name, contact, pass };
-    localStorage.setItem('hpu2s_user_' + contact, JSON.stringify(user));
+    localStorage.setItem('user_' + contact, JSON.stringify(user));
     
-    alert("Đăng ký thành công! Vui lòng đăng nhập.");
+    alert("Đăng ký thành công! Hãy đăng nhập nhé.");
     switchView('login');
 }
 
-// Hàm Đăng Nhập
+// --- 3. ĐĂNG NHẬP ---
 function handleLogin() {
     const contact = document.getElementById('loginContact').value;
     const pass = document.getElementById('loginPass').value;
 
     if (!contact || !pass) {
-        alert("Vui lòng nhập đầy đủ thông tin!");
+        alert("Nhập số điện thoại và mật khẩu đi bạn ơi!");
         return;
     }
 
-    const storedUser = localStorage.getItem('hpu2s_user_' + contact);
-    if (storedUser) {
-        const user = JSON.parse(storedUser);
+    // Lấy user từ bộ nhớ
+    const savedUser = localStorage.getItem('user_' + contact);
+    
+    if (savedUser) {
+        const user = JSON.parse(savedUser);
         if (user.pass === pass) {
-            // Đăng nhập thành công -> Vào Dashboard
-            alert("Xin chào " + user.name + "!");
+            // Đăng nhập đúng -> Vào Dashboard
+            document.getElementById('userNameDisplay').innerText = user.name;
             switchView('dashboard');
         } else {
-            alert("Sai mật khẩu!");
+            alert("Sai mật khẩu rồi!");
         }
     } else {
-        alert("Tài khoản không tồn tại!");
+        alert("Tài khoản này chưa đăng ký!");
     }
 }
 
-// Hàm Đăng Xuất
 function handleLogout() {
-    stopScanning(); // Tắt camera nếu đang bật
+    stopScanning();
     switchView('login');
 }
 
-// ============================================================
-// 3. CAMERA & AI (Real-time Logic)
-// ============================================================
-
-// Bật Camera
+// --- 4. CAMERA & AI ---
 async function startRealTimeCamera() {
-    const videoEl = document.getElementById('video');
-    const resultDiv = document.getElementById('realtime-result');
-
     try {
         stream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-                facingMode: 'environment', // Ưu tiên cam sau
-                width: { ideal: 640 },
-                height: { ideal: 480 }
-            }
+            video: { facingMode: 'environment' }
         });
-
-        videoEl.srcObject = stream;
-        videoEl.style.display = 'block';
-        if(resultDiv) resultDiv.innerText = "🔍 Đang khởi động AI...";
-
-        // Bắt đầu vòng lặp gửi ảnh
-        startScanningLoop();
+        const video = document.getElementById('video');
+        video.srcObject = stream;
+        video.style.display = 'block'; // Hiện video lên
+        
+        document.getElementById('realtime-result').innerText = "🔍 Đang soi...";
+        
+        if (scanningInterval) clearInterval(scanningInterval);
+        scanningInterval = setInterval(processFrame, 2000); // 2 giây gửi 1 lần
 
     } catch (err) {
-        console.error("Lỗi Camera:", err);
-        alert("Không mở được Camera. Vui lòng cấp quyền!");
+        alert("Lỗi camera: " + err);
     }
 }
 
-// Vòng lặp gửi ảnh (2 giây/lần)
-function startScanningLoop() {
-    if (scanningInterval) clearInterval(scanningInterval);
-    scanningInterval = setInterval(processFrame, 2000);
-}
-
-// Xử lý từng khung hình
 async function processFrame() {
     if (isProcessing || !stream) return;
-    
-    const videoEl = document.getElementById('video');
-    
-    // Kiểm tra video đã sẵn sàng chưa
-    if (videoEl.readyState !== videoEl.HAVE_ENOUGH_DATA) return;
+    isProcessing = true;
 
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        
+        const base64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+        await sendToAI(base64);
+    }
+    isProcessing = false;
+}
+
+async function sendToAI(image) {
+    const resDiv = document.getElementById('realtime-result');
     try {
-        isProcessing = true; // Khóa tiến trình
-
-        const canvasEl = document.getElementById('canvas');
-        canvasEl.width = videoEl.videoWidth;
-        canvasEl.height = videoEl.videoHeight;
+        const req = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: image })
+        });
+        const data = await req.json();
         
-        const ctx = canvasEl.getContext('2d');
-        ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
-
-        // Nén ảnh gửi đi
-        const base64Image = canvasEl.toDataURL('image/jpeg', 0.6);
-        
-        await sendToServer(base64Image);
-
-    } catch (err) {
-        console.error("Lỗi xử lý ảnh:", err);
-    } finally {
-        isProcessing = false; // Mở khóa
+        // Hiển thị kết quả
+        if(data.disease_name) {
+            resDiv.innerHTML = `🌿 ${data.disease_name} (${(data.confidence*100).toFixed(0)}%)`;
+            resDiv.style.color = (data.disease_name === 'Healthy') ? 'green' : 'red';
+            
+            // Cập nhật báo cáo
+            document.getElementById('aiDiseaseName').innerText = data.disease_name;
+            document.getElementById('aiSolution').innerText = data.solution || "Đang cập nhật...";
+            
+            const statusEl = document.getElementById('plantStatus');
+            if(data.disease_name === 'Healthy' || data.disease_name === 'Cây khỏe mạnh') {
+                 statusEl.innerText = "✅ CÂY KHỎE";
+                 statusEl.style.color = "green";
+            } else {
+                 statusEl.innerText = "⚠️ CÂY BỆNH";
+                 statusEl.style.color = "red";
+            }
+        }
+    } catch (e) {
+        console.log(e);
     }
 }
 
-// Gửi lên Server AI
-async function sendToServer(base64String) {
-    const imageCode = base64String.split(',')[1]; // Bỏ header base64
-    const resultDiv = document.getElementById('realtime-result');
+function stopScanning() {
+    if (scanningInterval) clearInterval(scanningInterval);
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    document.getElementById('video').style.display = 'none';
+    document.getElementById('realtime-result').innerText = "Đã dừng.";
+}
 
-    try {
-        if(resultDiv) {
-            resultDiv.innerHTML = "📡 Đang phân tích...";
-            resultDiv.style.color = "orange";
-        }
+function startClock() {
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('vi-VN');
+    }, 1000);
+}
 
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: imageCode })
-        });
+// Khởi chạy: Vào màn hình Login
+document.addEventListener('DOMContentLoaded', () => {
+    switchView('login');
+});
 
-        const data = await response.json();
-
-        // Cập nhật kết quả dưới video
-        if (data.disease_name && resultDiv) {
-            resultDiv.innerHTML = `🌿 <b>${data.disease_name}</b> (${(data.confidence * 100).toFixed(0)}%)

@@ -12,7 +12,7 @@ CORS(app, resources={r"/*": {"origins": CORS(app, resources={r"/*": {"origins": 
     "https://hpu2sfarm-6g8w.onrender.com", 
     "http://127.0.0.1:5500", 
     "http://localhost:5500"
-]}})
+]}})}
 }
 model = None
 try:
@@ -137,5 +137,6 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 

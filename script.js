@@ -1,5 +1,5 @@
 // Địa chỉ server Python (Bộ não AI)
-const AI_SERVER_URL = "https://hpu2sfarm-backend-1p74.onrender.com/detect"; 
+const AI_SERVER_URL = "https://hpu2sfarm-backend-1ho4.onrender.com/detect"; 
 
 // API Key (Dùng để xác thực người dùng - Giả lập)
 const FIREBASE_API_KEY = "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M";
@@ -153,81 +153,134 @@ function stopCamera() {
     clearInterval(aiInterval); // Dừng gửi ảnh cho AI
 }
 
-// Vòng lặp gửi ảnh cho AI (2 giây/lần)
-function startAI_Loop() {
-    aiInterval = setInterval(() => {
-       const video = document.getElementById('video');
+const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
-const capturedImage = document.getElementById('captured-image');
-const btnCapture = document.getElementById('btn-capture');
+const resultText = document.getElementById('result-text'); // Cần thêm thẻ này bên HTML
 let stream = null;
+let scanningInterval = null;
+let isProcessing = false; // Cờ đánh dấu để không gửi spam nếu mạng lag
 
-// 1. Hàm bật Camera
-async function startCamera() {
+// ======================================================
+// CÁC HÀM XỬ LÝ
+// ======================================================
+
+// 1. Hàm bật Camera và TỰ ĐỘNG QUÉT
+async function startRealTimeCamera() {
     try {
+        const videoEl = document.getElementById('video');
+        
+        // Mở Camera sau
         stream = await navigator.mediaDevices.getUserMedia({
             video: { 
-                facingMode: 'environment', // Ưu tiên Camera sau
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+                facingMode: 'environment',
+                width: { ideal: 640 },  // Giảm độ phân giải chút cho nhẹ
+                height: { ideal: 480 }
             }
         });
-        video.srcObject = stream;
-        video.style.display = 'block';
-        capturedImage.style.display = 'none';
-        btnCapture.style.display = 'inline-block';
+
+        videoEl.srcObject = stream;
+        videoEl.style.display = 'block';
+        
+        // Bắt đầu vòng lặp quét (2 giây 1 lần)
+        startScanningLoop();
+
     } catch (err) {
-        alert("Không bật được Camera! (Hãy kiểm tra quyền truy cập)");
+        console.error("Lỗi Camera:", err);
+        alert("Không mở được Camera. Vui lòng cấp quyền!");
     }
 }
 
-// 2. Hàm chụp ảnh và gửi về Server
-async function captureImage() {
-    if (!stream) return;
+// 2. Vòng lặp tự động gửi ảnh (Core của Real-time)
+function startScanningLoop() {
+    // Nếu đang chạy rồi thì thôi
+    if (scanningInterval) clearInterval(scanningInterval);
 
-    // Vẽ hình từ video lên canvas
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-
-    // Chuyển thành dạng dữ liệu Base64
-    const base64Image = canvas.toDataURL('image/jpeg');
-
-    // Hiển thị ảnh vừa chụp
-    capturedImage.src = base64Image;
-    capturedImage.style.display = 'block';
-    video.style.display = 'none';
-    
-    // Tắt camera cho đỡ tốn pin
-    stream.getTracks().forEach(track => track.stop());
-    btnCapture.style.display = 'none';
-
-    // Gửi lên Server (Backend)
-    sendToServer(base64Image);
+    // Cài đặt: Cứ 2000ms (2 giây) thì chạy hàm processFrame 1 lần
+    scanningInterval = setInterval(processFrame, 2000);
 }
 
-async function sendToServer(base64String) {
-    // Tách phần đầu "data:image/jpeg;base64," ra, chỉ lấy mã code
-    const imageCode = base64String.split(',')[1];
+// 3. Hàm xử lý từng khung hình
+async function processFrame() {
+    // Nếu đang bận xử lý ảnh trước hoặc camera chưa bật -> Bỏ qua
+    if (isProcessing || !stream) return;
 
     try {
-        console.log("Đang gửi ảnh...");
-        const response = await fetch('https://hpu2sfarm-backend-1p74.onrender.com/detect', {
+        isProcessing = true; // Đánh dấu là đang bận
+
+        // Lấy khung hình từ video vẽ lên canvas ẩn
+        const videoEl = document.getElementById('video');
+        const canvasEl = document.getElementById('canvas');
+        
+        if (videoEl.readyState !== videoEl.HAVE_ENOUGH_DATA) {
+            isProcessing = false;
+            return;
+        }
+
+        canvasEl.width = videoEl.videoWidth;
+        canvasEl.height = videoEl.videoHeight;
+        const ctx = canvasEl.getContext('2d');
+        ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+
+        // Chuyển thành Base64
+        const base64Image = canvasEl.toDataURL('image/jpeg', 0.7); // Nén chất lượng 0.7 cho nhẹ
+        
+        // Gửi lên Server
+        await sendToServer(base64Image);
+
+    } catch (err) {
+        console.error("Lỗi xử lý frame:", err);
+    } finally {
+        isProcessing = false; // Xử lý xong, mở cờ để nhận ảnh tiếp theo
+    }
+}
+
+// 4. Gửi dữ liệu lên AI Server
+async function sendToServer(base64String) {
+    const API_URL = 'https://hpu2sfarm-backend-1ho4.onrender.com/detect';
+    const imageCode = base64String.split(',')[1];
+    const resultDiv = document.getElementById('realtime-result');
+
+    try {
+        // Hiện trạng thái đang quét...
+        resultDiv.innerHTML = "🔍 Đang phân tích...";
+        resultDiv.style.color = "orange";
+
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: imageCode }) // Gửi dạng JSON
+            body: JSON.stringify({ image: imageCode })
         });
 
         const data = await response.json();
-        console.log("Kết quả:", data);
-        alert(`Bệnh: ${data.disease_name}\nĐộ tin cậy: ${data.confidence}`);
-        
+
+        // Cập nhật kết quả lên màn hình mà không cần reload
+        if (data.disease_name) {
+            resultDiv.innerHTML = `🌿 <b>${data.disease_name}</b><br><small>Độ tin cậy: ${(data.confidence * 100).toFixed(1)}%</small>`;
+            
+            // Đổi màu chữ tùy kết quả
+            if (data.disease_name === "Healthy" || data.disease_name === "Khỏe mạnh") {
+                resultDiv.style.color = "green";
+            } else {
+                resultDiv.style.color = "red";
+            }
+        } else {
+            resultDiv.innerHTML = "❓ Không nhận diện được";
+        }
+
     } catch (error) {
         console.error(error);
-        alert("Lỗi kết nối Server!");
+        resultDiv.innerHTML = "⚠️ Mất kết nối Server";
     }
 }
 
+// 5. Hàm dừng quét (khi tắt trang hoặc bấm dừng)
+function stopScanning() {
+    if (scanningInterval) clearInterval(scanningInterval);
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    stream = null;
+    document.getElementById('video').style.display = 'none';
+    document.getElementById('realtime-result').innerHTML = "";
+}
 // Cập nhật giao diện kết quả
 function updateReport(data) {
     const statusEl = document.getElementById('plantStatus');
@@ -260,6 +313,7 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+
 
 
 

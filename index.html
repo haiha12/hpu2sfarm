@@ -58,30 +58,26 @@
 
         <div id="dashboardScreen" class="dashboard hidden">
             <div class="camera-section">
-<h3>Chẩn đoán thời gian thực</h3>
+<div style="position: relative; text-align: center;">
+    <h3>Chẩn đoán thời gian thực</h3>
     
-    <div style="position: relative; display: inline-block;">
-        <video id="video" autoplay playsinline style="width: 100%; max-width: 500px; border-radius: 10px; background: #000; display: none;"></video>
-        
-        <div id="realtime-result" style="
-            margin-top: 10px;
-            font-size: 20px;
-            font-weight: bold;
-            min-height: 50px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ddd;">
-            Sẵn sàng quét...
-        </div>
+    <video id="video" autoplay playsinline style="width: 100%; max-width: 500px; border-radius: 10px; background: #000; display: none;"></video>
+    
+    <div id="realtime-result" style="margin-top: 10px; font-weight: bold; font-size: 18px; min-height: 40px; color: #333;">
+        Sẵn sàng...
     </div>
-    
-    <canvas id="canvas" style="display:none;"></canvas>
+</div>
 
-    <div style="margin-top: 15px;">
-        <button onclick="startRealTimeCamera()" class="btn">🚀 Bắt đầu Quét AI</button>
-        <button onclick="stopScanning()" class="btn" style="background: #dc3545; margin-left: 10px;">🛑 Dừng lại</button>
-    </div>
+<canvas id="canvas" style="display:none;"></canvas>
+
+<div style="text-align: center; margin-top: 15px;">
+    <button onclick="startRealTimeCamera()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px;">
+        🚀 Bắt đầu Quét
+    </button>
+    <button onclick="stopScanning()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; margin-left: 10px;">
+        🛑 Dừng
+    </button>
+</div>
                 </div>
             </div>
 
@@ -110,4 +106,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 

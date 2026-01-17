@@ -73,7 +73,7 @@ def detect():
     results = None
     try:
      { "image": "chuỗi_base64_ở_đây" }
-        data = request.json.get('image')
+        data = request.get_json(force=True, silent=True)
         
         if not data:
             return jsonify({'error': 'Không nhận được dữ liệu ảnh'}), 400
@@ -135,4 +135,5 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 

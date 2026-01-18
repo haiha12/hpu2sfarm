@@ -13,27 +13,21 @@ const firebaseConfig = {
   measurementId: "G-G3FH2ZNDJ0"
 };
 
-function switchView(view) {
-    ['registerScreen', 'loginScreen', 'dashboardScreen', 'btnLogout'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.classList.add('hidden');
-    });
+function switchView(viewName) {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('registerScreen').classList.add('hidden');
+        document.getElementById('dashboardScreen').classList.add('hidden');
 
-    if(view === 'login') {
-        document.getElementById('loginScreen').classList.remove('hidden');
+        if(viewName === 'login') {
+            document.getElementById('loginScreen').classList.remove('hidden');
+        } else if(viewName === 'register') {
+            document.getElementById('registerScreen').classList.remove('hidden');
+        } else if(viewName === 'dashboard') {
+            document.getElementById('dashboardScreen').classList.remove('hidden');
+            initCamera(); 
+            startClock();
+        }
     }
-    if(view === 'register') {
-        document.getElementById('registerScreen').classList.remove('hidden');
-    }
-    if(view === 'dashboard') {
-        document.getElementById('dashboardScreen').classList.remove('hidden');
-        document.getElementById('btnLogout').classList.remove('hidden');
-
-        startClock();
-        initCamera();
-        startAI_Loop(); 
-    }
-}
 
 function getGPS() {
     if(navigator.geolocation) {
@@ -181,3 +175,4 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+

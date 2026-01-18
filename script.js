@@ -152,7 +152,7 @@ function startAI_Loop() {
         .then(data => updateReport(data))
         .catch(err => console.log("AI Server chưa bật hoặc lỗi:", err));
 
-    }, 2000); 
+    }, 2000);} 
 }
 
 function updateReport(data) {
@@ -181,7 +181,3 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
-
-
-
-

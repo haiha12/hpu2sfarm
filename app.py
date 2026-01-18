@@ -8,11 +8,7 @@ from ultralytics import YOLO
 import gc  
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": [
-    "https://hpu2sfarm-6g8w.onrender.com",
-    "http://127.0.0.1:5500",
-    "http://localhost:5500"
-]}})
+CORS(app)
 model = None
 try:
     model = YOLO('best.pt') 
@@ -143,6 +139,7 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 
 

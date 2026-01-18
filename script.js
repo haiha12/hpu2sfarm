@@ -139,8 +139,11 @@ function startAI_Loop() {
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        const dataURL = canvas.toDataURL('image/jpeg', 0.7); // Nén chất lượng 0.7 cho nhẹ
-
+    setInterval(async () => {
+        const dataURL = canvas.toDataURL('image/jpeg', 0.7); 
+        const blob = await (await fetch(dataURL)).blob();
+        const formData = new FormData();
+        formData.append("file", blob, "plant.jpg");
         fetch("https://hpu2sfarm-backend-m9q4.onrender.com/detect", {
             method: "POST",
             body: formData
@@ -178,6 +181,7 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+
 
 
 

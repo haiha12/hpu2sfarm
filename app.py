@@ -83,8 +83,8 @@ def detect():
         if not data or 'image' not in data:
             return jsonify({'error': 'Không nhận được dữ liệu ảnh'}), 400
         
-        image_data = data['image'] # Lấy chuỗi base64 từ key 'image'
-        img_bytes = base64.b64decode(data)
+        image_data = data['image'] 
+        img_bytes = base64.b64decode(data['image'])
         nparr = np.frombuffer(img_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -143,5 +143,6 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 

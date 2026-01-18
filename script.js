@@ -105,10 +105,15 @@ document.getElementById('btnLogout').onclick = () => {
 
 let videoStream;
 let aiInterval;
-
+let videoStream = await navigator.mediaDevices.getUserMedia(...)
 async function initCamera() {
     try {
-        videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    videoStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            facingMode: "environment" 
+    },
+    audio: false 
+});
         document.getElementById('webcamVideo').srcObject = videoStream;
     } catch(e) { 
         console.error("Lỗi Camera:", e); 
@@ -175,3 +180,4 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+

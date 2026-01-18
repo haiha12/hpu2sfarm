@@ -13,21 +13,41 @@ const firebaseConfig = {
   measurementId: "G-G3FH2ZNDJ0"
 };
 
-function switchView(viewName) {
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('registerScreen').classList.add('hidden');
-        document.getElementById('dashboardScreen').classList.add('hidden');
+function switchView(view) {
+    document.getElementById('registerScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('dashboardScreen').classList.add('hidden');
 
-        if(viewName === 'login') {
-            document.getElementById('loginScreen').classList.remove('hidden');
-        } else if(viewName === 'register') {
-            document.getElementById('registerScreen').classList.remove('hidden');
-        } else if(viewName === 'dashboard') {
-            document.getElementById('dashboardScreen').classList.remove('hidden');
+    if (view === 'login') {
+        document.getElementById('loginScreen').classList.remove('hidden');
+    } 
+    else if (view === 'register') {
+        document.getElementById('registerScreen').classList.remove('hidden');
+    } 
+    else if (view === 'dashboard') {
+        document.getElementById('dashboardScreen').classList.remove('hidden');
+
+        const btnLogout = document.getElementById('btnLogout');
+        if(btnLogout) btnLogout.classList.remove('hidden');
+
+        if (typeof initCamera === 'function') {
             initCamera(); 
-            startClock();
+        }
+        
+        // Bắt đầu AI (nếu hàm startAI_Loop đã có)
+        if (typeof startAI_Loop === 'function') {
+             startAI_Loop();
         }
     }
+}
+
+function handleLogin() {
+    const sdt = document.getElementById('loginContact').value;
+    const pass = document.getElementById('loginPass').value;
+
+    console.log("Đang chuyển trang...");
+    switchView('dashboard');
+}
 
 function getGPS() {
     if(navigator.geolocation) {
@@ -66,30 +86,6 @@ function handleRegister() {
     
     alert("Đăng ký thành công! Mời bạn đăng nhập.");
     switchView('login');
-}
-
-function handleLogin() {
-    const contact = document.getElementById('loginContact').value;
-    const pass = document.getElementById('loginPass').value;
-
-  if (!contact || !pass) {
-        alert("Vui lòng nhập SĐT và Mật khẩu!");
-        return;
-    }
-
-    const storedUser = localStorage.getItem('hpu2s_user_' + contact);
-
-    if (storedUser) {
-        const user = JSON.parse(storedUser);
-        if (user.pass === pass) {
-            alert("Đăng nhập thành công! Xin chào " + user.name);
-            switchView('dashboard');
-        } else {
-            alert("Sai mật khẩu rồi! Vui lòng thử lại.");
-        }
-    } else {
-        alert("Tài khoản chưa tồn tại. Vui lòng đăng ký trước!");
-    }
 }
 
 document.getElementById('btnLogout').onclick = () => { 
@@ -175,4 +171,5 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+
 

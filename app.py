@@ -1,6 +1,6 @@
 # app.py
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import base64
 import cv2
 import numpy as np
@@ -8,7 +8,7 @@ from ultralytics import YOLO
 import gc  
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 model = None
 try:
     model = YOLO('best.pt') 
@@ -66,7 +66,8 @@ DISEASE_INFO = {
 def home():
     return "<h1>🌿 HPU2 Farm Backend is Running! 🚀</h1>"
 
-@app.route('/detect', methods=['POST', 'OPTIONS'])
+@app.route('/detect', methods=['POST'], strict_slashes=False) 
+@cross_origin()
 def detect():
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'}), 200
@@ -139,6 +140,7 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 
 

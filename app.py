@@ -17,10 +17,10 @@ CORS(app, resources={r"/*": {"origins": CORS(app, resources={r"/*": {"origins": 
 model = None
 try:
     print("🔄 Đang tải model YOLOv11 Nano...")
-    model = YOLO('yolov11n.pt') 
+    model = YOLO('best.pt') 
 except Exception as e:
     print(f"⚠️ Lỗi tải v11n, chuyển sang v8n: {e}")
-    model = YOLO('yolov8n.pt')
+    model = YOLO('last.pt')
 
 DISEASE_INFO = {
     'tea_plant': {
@@ -137,6 +137,7 @@ def detect():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 
 

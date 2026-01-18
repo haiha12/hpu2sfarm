@@ -16,11 +16,11 @@ CORS(app, resources={r"/*": {"origins": CORS(app, resources={r"/*": {"origins": 
 )
 model = None
 try:
-    print("🔄 Đang tải model YOLOv11 Nano...")
     model = YOLO('best.pt') 
+    print("Đã tải model best.pt...")
 except Exception as e:
-    print(f"⚠️ Lỗi tải v11n, chuyển sang v8n: {e}")
     model = YOLO('last.pt')
+    print(f"⚠️ Lỗi tải best.pt, chuyển sang last.pt: {e}")
 
 DISEASE_INFO = {
     'tea_plant': {
@@ -71,20 +71,26 @@ DISEASE_INFO = {
 def home():
     return "<h1>🌿 HPU2 Farm Backend is Running! 🚀</h1>"
 
-@app.route('/detect', methods=['POST'])
+@app.route('/detect', methods=['POST', 'OPTIONS'])
 def detect():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+        
     img = None
     results = None
+    
     try:
         data = request.get_json(force=True, silent=True)
         if not data or 'image' not in data:
             return jsonify({'error': 'Không nhận được dữ liệu ảnh'}), 400
-
+        
+        image_data = data['image'] # Lấy chuỗi base64 từ key 'image'
         img_bytes = base64.b64decode(data)
         nparr = np.frombuffer(img_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        img = cv2.resize(img, (640, 640))
+        if model is None:
+            return jsonify({'error': 'Server chưa có Model'}), 500
 
         results = model(img)
 
@@ -105,7 +111,6 @@ def detect():
         print("🔍 AI thấy:", detected_classes) 
         
         response_data = DISEASE_INFO['unknown']
-        
         found_disease = False 
 
         for name in detected_classes:
@@ -118,8 +123,9 @@ def detect():
             if 'tea_plant' in detected_classes:
                 response_data = DISEASE_INFO['tea_plant']
 
-        response_data['confidence'] = max_conf
-        response_data['disease_name'] = response_data['disease'] 
+        response_data = response_data.copy()
+        response_data['confidence'] = round(max_conf, 2)
+        response_data['disease_name'] = response_data['disease']
 
         return jsonify(response_data)
 
@@ -131,14 +137,10 @@ def detect():
         try:
             del img
             del results
+            del data
             gc.collect() 
         except:
             pass
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-
-
-
-
-

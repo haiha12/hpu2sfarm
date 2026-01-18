@@ -70,7 +70,29 @@
                     </select>
                 </div>
             </div>
+<script>
+    async function initCamera() {
+        try {
+            const constraints = {
+                video: { facingMode: "environment" },
+                audio: false
+            };
 
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            const videoElement = document.getElementById('webcamVideo');
+            
+            if (videoElement) {
+                videoElement.srcObject = stream; // Gán hình ảnh vào thẻ
+            } else {
+                console.log("Lỗi: Không tìm thấy thẻ video!");
+            }
+        } catch (e) {
+            console.error("Lỗi bật Camera:", e);
+        }
+}
+document.addEventListener("DOMContentLoaded", initCamera);
+<script>
             <div class="status-panel">
                 <div class="card">
                     <div>Giờ thực tế</div>
@@ -96,3 +118,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+

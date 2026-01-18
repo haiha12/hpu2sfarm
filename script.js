@@ -105,7 +105,6 @@ document.getElementById('btnLogout').onclick = () => {
 
 let videoStream;
 let aiInterval;
-let videoStream = await navigator.mediaDevices.getUserMedia(...)
 async function initCamera() {
     try {
     videoStream = await navigator.mediaDevices.getUserMedia({ 
@@ -180,4 +179,5 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+
 

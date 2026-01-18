@@ -1,4 +1,4 @@
-const AI_SERVER_URL = "https://hpu2sfarm-backend-eecw.onrender.com/detect"; 
+const AI_SERVER_URL = "https://hpu2sfarm-backend-m9q4.onrender.com/detect"; 
 
 const FIREBASE_API_KEY = "AIzaSyAQSoG7YJbap3d47qqhEfZWc3kIJr35B5M";
 
@@ -141,10 +141,9 @@ function startAI_Loop() {
 
         const dataURL = canvas.toDataURL('image/jpeg', 0.7); // Nén chất lượng 0.7 cho nhẹ
 
-        fetch(AI_SERVER_URL, {
+        fetch("https://hpu2sfarm-backend-m9q4.onrender.com/detect", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: dataURL })
+            body: formData
         })
         .then(response => response.json())
         .then(data => updateReport(data))
@@ -179,5 +178,6 @@ function startClock() {
 document.addEventListener("DOMContentLoaded", () => {
     switchView('login');
 });
+
 
 
